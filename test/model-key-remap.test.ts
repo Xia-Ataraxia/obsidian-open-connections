@@ -110,15 +110,15 @@ describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
     // ── Step 1: Save entity with full embedding ──────────────────────────
     const firstColl = createSavingCollection([makeFullEntity('note-a.md#h1', [1, 0])]);
     const firstAdapter = new NodeSqliteDataAdapter(firstColl, 'smart_blocks', ns);
-    firstAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+    await firstAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
     await firstAdapter.save();
     closeNodeSqliteDatabases();
 
     // ── Step 2: Reload (vec becomes [] — lazy-loaded) ────────────────────
     const secondColl = createRealEntityCollection('test-model');
     const secondAdapter = new NodeSqliteDataAdapter(secondColl, 'smart_blocks', ns);
-    secondAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
-    secondAdapter.load();
+    await secondAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+    await secondAdapter.load();
 
     expect(secondColl.all).toHaveLength(1);
     const lazyEntity = secondColl.all[0];
@@ -133,8 +133,8 @@ describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
     // ── Step 4: Reload and verify is_unembedded is still false ───────────
     const thirdColl = createRealEntityCollection('test-model');
     const thirdAdapter = new NodeSqliteDataAdapter(thirdColl, 'smart_blocks', ns);
-    thirdAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
-    thirdAdapter.load();
+    await thirdAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+    await thirdAdapter.load();
 
     expect(thirdColl.all).toHaveLength(1);
     expect(thirdColl.all[0].is_unembedded).toBe(false);
