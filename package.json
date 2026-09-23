@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GoBeromsu/Open-smart-connections.git"
+    "url": "git+https://github.com/Xia-Ataraxia/obsidian-open-connections.git"
   },
   "keywords": [
     "Obsidian",
@@ -48,9 +48,9 @@
   "author": "Beomsu Koh",
   "license": "SEE LICENSE IN LICENSE",
   "bugs": {
-    "url": "https://github.com/GoBeromsu/Open-smart-connections/issues"
+    "url": "https://github.com/Xia-Ataraxia/obsidian-open-connections/issues"
   },
-  "homepage": "https://github.com/GoBeromsu/Open-smart-connections",
+  "homepage": "https://github.com/Xia-Ataraxia/obsidian-open-connections#readme",
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
