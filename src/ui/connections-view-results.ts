@@ -33,6 +33,7 @@ export function renderConnectionsResults(
     targetPath,
     resultKeys,
     folderFilter: view.folderFilter,
+    highlightThreshold: view.plugin.settings?.smart_view_filter?.highlight_threshold,
     pinnedKeys: [...view.session.pinnedKeys].sort(),
     hiddenKeys: [...view.session.hiddenKeys].sort(),
   });
