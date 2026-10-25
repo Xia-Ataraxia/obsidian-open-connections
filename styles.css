@@ -748,9 +748,9 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
 }
 
 .osc-lookup-chip--active {
-  color: var(--interactive-accent);
-  border-color: var(--interactive-accent);
-  background: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
+  color: var(--text-accent);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
 }
 
 /* ─── Meta Line ─── */
