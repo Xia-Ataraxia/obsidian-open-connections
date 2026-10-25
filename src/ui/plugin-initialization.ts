@@ -158,19 +158,22 @@ export async function initializeEmbedding(
           if (plugin._unloading || !isCurrentLifecycle(plugin, lifecycle)) return;
           plugin.logger.debug('[SC][Init] ▶ Phase 3: Background block import');
           beginEmbedProfilingStage(plugin, 'init:background-import');
-          const importResult = await importBlocksChunked(plugin, {
-            limit: STARTUP_BACKGROUND_IMPORT_LIMIT,
-          });
-          if (plugin._unloading || !isCurrentLifecycle(plugin, lifecycle)) return;
-          if (importResult.remainingCount > 0) {
-            plugin.logger.info(
-              `[SC][Init] Phase 3 deferred ${importResult.remainingCount} sources to on-demand import`,
-            );
-          }
-          const queued = queueUnembeddedEntities(plugin);
-          if (queued > 0 && plugin.embedding_pipeline) {
-            plugin.logger.debug(`[SC][Init] Phase 3: ${queued} blocks to embed`);
-            await plugin.runEmbeddingJob('[phase3] background block embed');
+          // Import and embed in batches so a large vault is indexed end to end without a startup spike.
+          // `attempted` keeps sources that parse to zero blocks (e.g. empty notes) from being retried forever.
+          const attempted = new Set<string>();
+          for (;;) {
+            const importResult = await importBlocksChunked(plugin, {
+              limit: STARTUP_BACKGROUND_IMPORT_LIMIT,
+              attempted,
+            });
+            if (plugin._unloading || !isCurrentLifecycle(plugin, lifecycle)) return;
+            const queued = queueUnembeddedEntities(plugin);
+            if (queued > 0 && plugin.embedding_pipeline) {
+              plugin.logger.debug(`[SC][Init] Phase 3: ${queued} blocks to embed`);
+              await plugin.runEmbeddingJob('[phase3] background block embed');
+            }
+            if (plugin._unloading || !isCurrentLifecycle(plugin, lifecycle)) return;
+            if (importResult.remainingCount <= importResult.importedCount) break;
           }
           plugin.app.workspace.trigger('open-connections:discovery-complete');
           plugin.logger.debug('[SC][Init] ✓ Phase 3 complete');
