@@ -215,7 +215,8 @@ export async function waitForSync(plugin: SmartConnectionsPlugin): Promise<void>
 
 export function obsidianIsSyncing(plugin: SmartConnectionsPlugin): boolean {
   const syncInstance = plugin.app.internalPlugins?.plugins?.sync?.instance;
-  if (!syncInstance) return false;
+  // Sync is on by default; without a connected remote vault it reports syncing forever.
+  if (!syncInstance?.vaultId) return false;
   if (syncInstance.syncStatus?.startsWith('Uploading')) return false;
   if (syncInstance.syncStatus?.startsWith('Fully synced')) return false;
   return syncInstance.syncing ?? false;
