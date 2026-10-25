@@ -5,6 +5,7 @@
 
 import { beforeAll, afterEach, vi } from 'vitest';
 import { App } from 'obsidian';
+import { patchObsidianEl } from './mocks/obsidian';
 
 // Note: obsidian module is aliased in vitest.config.ts to ./test/mocks/obsidian.ts
 
@@ -38,7 +39,7 @@ afterEach(() => {
 const g = globalThis as any;
 if (typeof document !== 'undefined' && !g.createEl) {
   g.createEl = (tag: string, o: { cls?: string; text?: string; type?: string } = {}) => {
-    const el = document.createElement(tag) as HTMLElement & { type?: string };
+    const el = patchObsidianEl(document.createElement(tag)) as HTMLElement & { type?: string };
     if (o.cls) el.className = o.cls;
     if (o.text !== undefined) el.textContent = o.text;
     if (o.type) el.type = o.type;

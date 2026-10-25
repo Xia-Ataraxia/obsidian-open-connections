@@ -175,7 +175,7 @@ export class Plugin {
 /**
  * Patch an HTMLElement with Obsidian's extended DOM helpers (.empty(), .addClass(), .createDiv(), .createEl(), .createSpan())
  */
-function patchObsidianEl(el: HTMLElement): HTMLElement {
+export function patchObsidianEl(el: HTMLElement): HTMLElement {
   (el as any).empty = function(): void { while (this.firstChild) this.removeChild(this.firstChild); };
   (el as any).addClass = function(...cls: string[]): void { this.classList.add(...cls); };
   (el as any).removeClass = function(...cls: string[]): void { this.classList.remove(...cls); };
