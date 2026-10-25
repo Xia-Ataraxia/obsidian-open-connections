@@ -1,10 +1,11 @@
 # Open Connections
 
-**Your notes, semantically connected.** A powerful Obsidian plugin that discovers related notes and enables semantic search across your entire vault—powered by local embeddings or your favorite AI provider.
+Obsidian plugin that surfaces semantically related notes and semantic search across your vault, powered by local embeddings or an API embedding provider.
 
-![Version](https://img.shields.io/badge/version-3.9.13-blue) ![License](https://img.shields.io/badge/license-GPL--3.0-green) ![Desktop Only](https://img.shields.io/badge/platform-desktop--only-gray)
-
-## Why Open Connections?
+[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json&query=%24%5B%27open-connections%27%5D.downloads&suffix=%20downloads&logo=obsidian&label=Obsidian&color=483699)](https://obsidian.md/plugins?id=open-connections)
+[![Latest Release](https://img.shields.io/github/v/release/Xia-Ataraxia/obsidian-open-connections?logo=github)](https://github.com/Xia-Ataraxia/obsidian-open-connections/releases/latest)
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-green)](LICENSE)
+![Desktop Only](https://img.shields.io/badge/platform-desktop--only-gray)
 
 Open Connections bridges the gap between simple keyword search and intelligent semantic discovery. As you write in Obsidian, it automatically surfaces notes that are semantically related to your current file—not just keyword matches, but conceptually connected ideas. It works entirely on your machine with local embeddings, or seamlessly integrates with OpenAI, Gemini, Ollama, and other providers.
 
@@ -19,69 +20,9 @@ Open Connections bridges the gap between simple keyword search and intelligent s
 - **Fast SQLite cache** — Embeddings are stored locally and reused across sessions
 - **Model fingerprinting** — Automatically re-embeds when you change providers or models
 - **Status bar progress** — See embedding progress in real-time
-- **Mobile support** — Works on iOS and Android
+- **MCP server** — expose vault connections to MCP clients from inside Obsidian or via the `open-connections-mcp` CLI
 
-## Quick Start
-
-### Installation
-
-#### From Community Plugin Browser (Recommended)
-
-1. Open Obsidian and go to **Settings > Community Plugins**
-2. Disable Safe Mode if enabled
-3. Click **Browse** and search for "Open Connections"
-4. Click **Install**, then **Enable**
-
-#### Manual Installation
-
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/GoBeromsu/Open-smart-connections/releases/latest)
-2. Create `.obsidian/plugins/open-connections/` in your vault
-3. Copy the three files into that directory
-4. Enable **Open Connections** in Settings > Community Plugins
-
-#### Build from Source
-
-```bash
-git clone https://github.com/GoBeromsu/Open-smart-connections.git
-cd open-connections
-pnpm install
-pnpm run build
-```
-
-Copy `dist/` contents to your vault's `.obsidian/plugins/open-connections/` directory.
-
-### MCP Usage from the Same Repo/Package
-
-Open Connections ships MCP support from this same repository/package in two ways:
-
-1. **Inside Obsidian** — enable **Settings → Open Connections → MCP** and start the local server, or run the existing command palette actions:
-   - `Open Connections: Start local server`
-   - `Open Connections: Stop local server`
-2. **Standalone CLI** — use the packaged bin entry:
-
-```bash
-pnpm install
-pnpm exec open-connections-mcp /path/to/your/vault
-```
-
-HTTP mode is also available:
-
-```bash
-pnpm exec open-connections-mcp /path/to/your/vault --http --port 27124
-```
-
-The standalone process reads the vault plugin data from `.obsidian/plugins/open-connections/`, so the plugin must already be installed and run at least once for the target vault.
-
-### First Steps
-
-1. Open **Settings > Open Connections**
-2. Choose an embedding provider (default: Transformers local)
-3. Select a model from the dropdown
-4. For API providers, enter your API key
-5. Open the **Connections** view from the ribbon icon
-6. Start navigating your vault—related notes appear automatically
-
-## How It Works
+### How It Works
 
 **Embeddings** are the core of semantic search. They convert text into mathematical vectors that capture meaning. Open Connections uses these vectors to find notes that are semantically similar.
 
@@ -106,13 +47,13 @@ The standalone process reads the vault plugin data from `.obsidian/plugins/open-
     └─────────────────────────┘
 ```
 
-### Two Main Views
+#### Two Main Views
 
 **Connections View** — Shows notes semantically related to the file you're currently viewing. Updates automatically as you navigate.
 
 **Lookup View** — Semantic search across your entire vault. Type a query and find notes by meaning, not just keywords.
 
-## Embedding Providers
+### Embedding Providers
 
 Open Connections supports multiple embedding providers. Choose what works best for your workflow:
 
@@ -126,7 +67,7 @@ Open Connections supports multiple embedding providers. Choose what works best f
 | **Upstage** | API | High | Fast | $ | Yes | Korean AI startup. Excellent multilingual support. |
 | **OpenRouter** | API | High | Fast | $ | Yes | Access multiple models through one API. |
 
-### Recommended Configurations
+#### Recommended Configurations
 
 **Best for privacy (local, zero setup):**
 ```
@@ -158,7 +99,43 @@ Provider: Ollama
 Model: nomic-embed-text or bge-m3 (after pulling)
 ```
 
+## Installation
+
+### From Community Plugin Browser (Recommended)
+
+1. Open Obsidian and go to **Settings > Community Plugins**
+2. Disable Safe Mode if enabled
+3. Click **Browse** and search for "Open Connections"
+4. Click **Install**, then **Enable**
+
+### Manual Installation
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/Xia-Ataraxia/obsidian-open-connections/releases/latest)
+2. Create `.obsidian/plugins/open-connections/` in your vault
+3. Copy the three files into that directory
+4. Enable **Open Connections** in Settings > Community Plugins
+
+### Build from Source
+
+```bash
+git clone https://github.com/Xia-Ataraxia/obsidian-open-connections.git
+cd obsidian-open-connections
+pnpm install
+pnpm run build
+```
+
+Copy `dist/` contents to your vault's `.obsidian/plugins/open-connections/` directory.
+
 ## Usage
+
+### First Steps
+
+1. Open **Settings > Open Connections**
+2. Choose an embedding provider (default: Transformers local)
+3. Select a model from the dropdown
+4. For API providers, enter your API key
+5. Open the **Connections** view from the ribbon icon
+6. Start navigating your vault—related notes appear automatically
 
 ### Connections View
 
@@ -182,74 +159,80 @@ Model: nomic-embed-text or bge-m3 (after pulling)
 
 Access these from the Command Palette (Cmd/Ctrl + P):
 
-- **Open Connections: Open Connections View** — Show the Connections panel
-- **Open Connections: Open Lookup View** — Show the Lookup panel
-- **Open Connections: Re-embed all notes** — Force a full re-embedding of your vault (useful after changing providers/models)
-- **Open Connections: Open settings** — Jump to plugin settings
+- **Connections view** — Show the Connections panel
+- **Find connections to current note**
+- **Open smart lookup** — Show the Lookup panel
+- **Refresh embeddings** / **Re-embed stale entities**
+- **Copy connections as smart context**
+- **Open random connection**
+- **Clear embedding cache**
+- **Start local server** / **Stop local server** — MCP server
 
-## Configuration
+### MCP Usage
 
-### Settings Tab
+Open Connections ships MCP support from this same repository/package in two ways:
+
+1. **Inside Obsidian** — enable **Settings → Open Connections → MCP** and start the local server, or run the existing command palette actions:
+   - `Open Connections: Start local server`
+   - `Open Connections: Stop local server`
+2. **Standalone CLI** — use the packaged bin entry:
+
+```bash
+pnpm install
+pnpm exec open-connections-mcp /path/to/your/vault
+```
+
+HTTP mode is also available:
+
+```bash
+pnpm exec open-connections-mcp /path/to/your/vault --http --port 27124
+```
+
+The standalone process reads the vault plugin data from `.obsidian/plugins/open-connections/`, so the plugin must already be installed and run at least once for the target vault.
+
+
+### Configuration
+
+#### Settings Tab
 
 **Embedding Provider** — Choose where embeddings come from (local or API).
 
 **Model Selection** — The plugin auto-discovers available models from your chosen provider. For API providers, ensure your API key is set first.
 
-**Connection Count** — How many related notes to show in the Connections View (default: 5).
+**Connection Count** — How many related notes to show in the Connections View.
 
-**API Keys** — Store credentials for OpenAI, Gemini, Upstage, OpenRouter, etc. Keys are stored in Obsidian's encrypted settings.
+**API Keys** — Store credentials for OpenAI, Gemini, Upstage, OpenRouter, etc. Keys are stored in the plugin's settings.
 
 **Advanced** — Model fingerprinting, cache management, re-embedding triggers.
 
-### Environment Variables
+### Troubleshooting
 
-For development or advanced configuration, set these in a `.env` file:
+#### Plugin won't enable or crashes on startup
 
-```
-OPENAI_API_KEY=your-key-here
-GEMINI_API_KEY=your-key-here
-OLLAMA_HOST=http://localhost:11434
-```
+1. Check the Obsidian console (Ctrl+Shift+I / Cmd+Shift+I)
+2. Verify you're on a supported Obsidian version (1.1.0+)
+3. Try disabling other embedding-related plugins
+4. Reinstall the plugin by deleting `.obsidian/plugins/open-connections/` and re-enabling from Community Plugins
 
-## Tech Stack
+#### Embeddings slow or CPU-heavy (local Transformers.js)
 
-| Layer | Technology |
-|-------|-----------|
-| **Platform** | Obsidian Plugin API |
-| **Language** | TypeScript 5, JavaScript |
-| **Bundler** | esbuild |
-| **Embeddings** | Transformers.js (WebGPU + WASM), OpenAI, Gemini, Ollama, LM Studio, Upstage, OpenRouter |
-| **Storage** | SQLite (node:sqlite) |
-| **Parallelism** | Web Workers (embedding in background) |
-| **Testing** | Vitest |
+1. Try a smaller model: `Xenova/bge-micro-v2` instead of `bge-m3`
+2. Switch to an API provider if you have quota
+3. Check if your browser supports WebGPU (Chrome/Edge on supported devices); otherwise WASM fallback is used
 
-## Project Architecture
+#### API provider returns errors
 
-```
-open-connections/
-├── src/
-│   ├── main.ts                   # Plugin entry point
-│   ├── domain/                   # Business logic (NO obsidian imports)
-│   │   ├── config.ts             # Settings, notice catalog
-│   │   ├── embed-model.ts        # Embedding adapter registry
-│   │   ├── embedding-pipeline.ts # Batch embedding pipeline
-│   │   ├── entities/             # Data model (Source, Block, Collection)
-│   │   └── embedding/kernel/     # Redux-style state machine
-│   ├── ui/                       # Obsidian-dependent UI
-│   │   ├── ConnectionsView.ts    # Related notes panel
-│   │   ├── LookupView.ts         # Semantic search panel
-│   │   ├── embed-adapters/       # 7 provider adapters
-│   │   ├── settings.ts           # Settings UI
-│   │   ├── status-bar.ts         # Progress bar
-│   │   └── commands.ts           # Command palette commands
-│   ├── types/                    # Pure type definitions
-│   └── utils/                    # Pure utility functions
-├── worker/
-│   └── embed-worker.ts           # Web Worker for Transformers.js
-├── test/                         # Vitest unit tests
-├── dist/                         # Build output
-└── manifest.json                 # Plugin manifest
-```
+1. Verify your API key is correct (check provider documentation)
+2. Ensure you have API quota remaining
+3. Check the Obsidian console for specific error messages
+4. Try switching to a different provider temporarily to test
+
+#### Results don't look relevant
+
+1. Embeddings quality depends on the model and your content
+2. Try a different model (e.g., switch from `bge-micro-v2` to `bge-m3`)
+3. Larger, higher-quality models generally give better results
+4. Ensure your notes have sufficient content for the embedding model to work with
 
 ## Development
 
@@ -262,8 +245,8 @@ open-connections/
 ### Setup
 
 ```bash
-git clone https://github.com/GoBeromsu/Open-smart-connections.git
-cd open-connections
+git clone https://github.com/Xia-Ataraxia/obsidian-open-connections.git
+cd obsidian-open-connections
 pnpm install
 ```
 
@@ -300,7 +283,47 @@ bash scripts/check-upstage.sh                               # longer Upstage emb
 
 `check-provider-runtime.sh` is the fast provider smoke probe: it rebuilds the plugin, reloads it in Obsidian, and verifies the active adapter/model/dimensions, `embed_ready`, and dev-error surfaces before you move on to broader issue triage or smoke-matrix work.
 
-## Contributing
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Platform** | Obsidian Plugin API |
+| **Language** | TypeScript 5, JavaScript |
+| **Bundler** | esbuild |
+| **Embeddings** | Transformers.js (WebGPU + WASM), OpenAI, Gemini, Ollama, LM Studio, Upstage, OpenRouter |
+| **Storage** | SQLite (node:sqlite) |
+| **Parallelism** | Web Workers (embedding in background) |
+| **Testing** | Vitest |
+
+### Project Architecture
+
+```
+open-connections/
+├── src/
+│   ├── main.ts                   # Plugin entry point
+│   ├── domain/                   # Business logic (NO obsidian imports)
+│   │   ├── config.ts             # Settings, notice catalog
+│   │   ├── embed-model.ts        # Embedding adapter registry
+│   │   ├── embedding-pipeline.ts # Batch embedding pipeline
+│   │   ├── entities/             # Data model (Source, Block, Collection)
+│   │   └── embedding/kernel/     # Redux-style state machine
+│   ├── ui/                       # Obsidian-dependent UI
+│   │   ├── ConnectionsView.ts    # Related notes panel
+│   │   ├── LookupView.ts         # Semantic search panel
+│   │   ├── embed-adapters/       # 7 provider adapters
+│   │   ├── settings.ts           # Settings UI
+│   │   ├── status-bar.ts         # Progress bar
+│   │   └── commands.ts           # Command palette commands
+│   ├── types/                    # Pure type definitions
+│   └── utils/                    # Pure utility functions
+├── worker/
+│   └── embed-worker.ts           # Web Worker for Transformers.js
+├── test/                         # Vitest unit tests
+├── dist/                         # Build output
+└── manifest.json                 # Plugin manifest
+```
+
+### Contributing
 
 We welcome contributions! Please follow these steps:
 
@@ -312,60 +335,7 @@ We welcome contributions! Please follow these steps:
 
 **Note:** This plugin maintains a shared architecture with other Obsidian plugins in the ecosystem. Large changes should be discussed in an issue first.
 
-## Troubleshooting
-
-### Plugin won't enable or crashes on startup
-
-1. Check the Obsidian console (Ctrl+Shift+I / Cmd+Shift+I)
-2. Verify you're on a supported Obsidian version (1.1.0+)
-3. Try disabling other embedding-related plugins
-4. Reinstall the plugin by deleting `.obsidian/plugins/open-connections/` and re-enabling from Community Plugins
-
-### Embeddings slow or CPU-heavy (local Transformers.js)
-
-1. Try a smaller model: `Xenova/bge-micro-v2` instead of `bge-m3`
-2. Switch to an API provider if you have quota
-3. Check if your browser supports WebGPU (Chrome/Edge on supported devices); otherwise WASM fallback is used
-
-### API provider returns errors
-
-1. Verify your API key is correct (check provider documentation)
-2. Ensure you have API quota remaining
-3. Check the Obsidian console for specific error messages
-4. Try switching to a different provider temporarily to test
-
-### Results don't look relevant
-
-1. Embeddings quality depends on the model and your content
-2. Try a different model (e.g., switch from `bge-micro-v2` to `bge-m3`)
-3. Larger, higher-quality models generally give better results
-4. Ensure your notes have sufficient content for the embedding model to work with
-
-## License
-
-**GNU General Public License v3.0** (GPL-3.0)
-
-See [LICENSE](LICENSE) for details.
-
-## Acknowledgments
-
-This project is a fork of [Smart Connections](https://github.com/brianpetro/obsidian-smart-connections) by Brian Petro. It has been rebuilt from the ground up for stability, extensibility, and integration with the broader Obsidian plugin ecosystem.
-
-Per GPL-3.0 Section 5, this modified version is clearly marked as different from the original.
-
-## Links
-
-- **Repository:** https://github.com/GoBeromsu/Open-smart-connections
-- **Releases:** https://github.com/GoBeromsu/Open-smart-connections/releases
-- **Issues:** https://github.com/GoBeromsu/Open-smart-connections/issues
-- **Obsidian:** https://obsidian.md/
-- **Smart Connections (Original):** https://smartconnections.app/
-
----
-
-**Built with TypeScript · Powered by Transformers.js · Encrypted by Obsidian**
-
-## Community Submission Checklist
+### Community Submission Checklist
 
 Before submitting to [obsidian-releases](https://github.com/obsidianmd/obsidian-releases), run `pnpm lint` to catch all [ObsidianReviewBot](https://github.com/obsidianmd/eslint-plugin) violations:
 
@@ -377,3 +347,23 @@ Before submitting to [obsidian-releases](https://github.com/obsidianmd/obsidian-
 | No inline styles | `addClass()` / `setCssProps()` instead of `el.style.X = value` |
 | `vault.configDir` | No hardcoded `.obsidian` strings |
 | No async without await | Remove `async` from methods with no `await` inside |
+
+## License
+
+**GNU General Public License v3.0** (GPL-3.0)
+
+See [LICENSE](LICENSE) for details.
+
+### Acknowledgments
+
+This project is a fork of [Smart Connections](https://github.com/brianpetro/obsidian-smart-connections) by Brian Petro. It has been rebuilt from the ground up for stability, extensibility, and integration with the broader Obsidian plugin ecosystem.
+
+Per GPL-3.0 Section 5, this modified version is clearly marked as different from the original.
+
+### Links
+
+- **Repository:** https://github.com/Xia-Ataraxia/obsidian-open-connections
+- **Releases:** https://github.com/Xia-Ataraxia/obsidian-open-connections/releases
+- **Issues:** https://github.com/Xia-Ataraxia/obsidian-open-connections/issues
+- **Obsidian:** https://obsidian.md/
+- **Smart Connections (Original):** https://smartconnections.app/
