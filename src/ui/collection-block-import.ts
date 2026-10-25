@@ -21,14 +21,14 @@ export interface BlockImportResult {
  */
 export async function importBlocksChunked(
   plugin: SmartConnectionsPlugin,
-  options: { limit?: number } = {},
+  options: { limit?: number; attempted?: Set<string> } = {},
 ): Promise<BlockImportResult> {
   if (!plugin.source_collection || !plugin.block_collection) {
     return { importedCount: 0, remainingCount: 0, totalCount: 0 };
   }
 
   const sources = plugin.source_collection.all.filter(
-    (source) => plugin.block_collection!.for_source(source.key).length === 0,
+    (source) => !options.attempted?.has(source.key) && plugin.block_collection!.for_source(source.key).length === 0,
   );
 
   if (sources.length === 0) {
@@ -54,6 +54,7 @@ export async function importBlocksChunked(
       };
     }
 
+    options.attempted?.add(source.key);
     try {
       await plugin.block_collection.import_source_blocks(source);
     } catch (error) {
