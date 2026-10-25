@@ -181,6 +181,7 @@ export class LookupView extends ItemView {
       resultsContainer: this.resultsContainer,
       searchMetaEl: this.searchMetaEl,
       lastQuery: this.lastQuery,
+      activeFilter: this.activeFilter,
       registerDomEvent: (el: HTMLElement, type: string, callback: (event: Event) => void) => {
         this.registerDomEvent(el, type as never, callback as never);
       },
