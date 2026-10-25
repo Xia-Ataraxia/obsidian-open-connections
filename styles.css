@@ -116,6 +116,47 @@
   animation: osc-progress-indeterminate 1.5s ease-in-out infinite;
 }
 
+/* Local model download progress (connections view) */
+.osc-model-download {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.osc-model-download-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+}
+
+.osc-model-download-size {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.osc-model-download .setting-progress-bar-inner {
+  transition: width 250ms ease-out;
+}
+
+.osc-model-download-file {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.osc-model-download--indeterminate .setting-progress-bar-inner {
+  animation: osc-progress-indeterminate 1.5s ease-in-out infinite;
+}
+
 @keyframes osc-progress-indeterminate {
   0% { margin-left: 0; }
   50% { margin-left: 70%; }
@@ -847,6 +888,14 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .osc-model-download .setting-progress-bar-inner {
+    transition-duration: 100ms;
+  }
+
+  .osc-model-download--indeterminate .setting-progress-bar-inner {
+    animation: osc-pulse 2.4s ease-in-out infinite;
+  }
+
   .osc-embed-progress--indeterminate .setting-progress-bar-inner {
     animation: osc-pulse 2.4s ease-in-out infinite;
   }

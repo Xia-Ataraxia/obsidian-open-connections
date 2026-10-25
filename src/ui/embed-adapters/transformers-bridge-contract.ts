@@ -20,7 +20,10 @@ export interface TransformersResponseMessage {
   iframe_id: string;
   channel_token: string;
   id?: number;
-  type?: 'log' | 'fatal' | 'cache_get' | 'cache_put';
+  type?: 'log' | 'fatal' | 'cache_get' | 'cache_put' | 'progress';
+  file?: string;
+  loaded?: number;
+  total?: number;
   cache_id?: number;
   key?: string;
   body?: ArrayBuffer;
@@ -74,6 +77,6 @@ export function parse_transformers_response(
   if (!is_plain_record(data)) return null;
   if (data.iframe_id !== iframe_id || data.channel_token !== channel_token) return null;
   if ('id' in data && !(typeof data.id === 'number' && Number.isSafeInteger(data.id))) return null;
-  if ('type' in data && !['log', 'fatal', 'cache_get', 'cache_put'].includes(data.type as string)) return null;
+  if ('type' in data && !['log', 'fatal', 'cache_get', 'cache_put', 'progress'].includes(data.type as string)) return null;
   return data as unknown as TransformersResponseMessage;
 }
