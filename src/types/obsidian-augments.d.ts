@@ -36,6 +36,7 @@ declare module 'obsidian' {
           instance?: {
             syncStatus?: string;
             syncing?: boolean;
+            vaultId?: string | null;
           };
         };
       };

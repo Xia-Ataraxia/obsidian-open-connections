@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { getSourceConnections, searchNearestAcrossCollections } from '../src/domain/semantic-search';
+import { bestBlockPerSource, getSourceConnections, searchNearestAcrossCollections } from '../src/domain/semantic-search';
 
 describe('searchNearestAcrossCollections', () => {
   it('merges collection results, sorts by score, and dedupes by key', async () => {
@@ -81,5 +81,19 @@ describe('getSourceConnections', () => {
 
     expect(results).toEqual([]);
     expect(blockCollection.nearest).not.toHaveBeenCalled();
+  });
+});
+
+describe('bestBlockPerSource', () => {
+  it('keeps the top block per note, ranked and limited', () => {
+    const r = (key: string, source_key: string, score: number) => ({ item: { key, source_key }, score }) as any;
+    const results = bestBlockPerSource([
+      r('a.md#x', 'a.md', 0.7),
+      r('b.md#x', 'b.md', 0.8),
+      r('a.md#y', 'a.md', 0.9),
+      r('c.md#x', 'c.md', 0.6),
+    ], 2);
+
+    expect(results.map((x) => x.item.key)).toEqual(['a.md#y', 'b.md#x']);
   });
 });

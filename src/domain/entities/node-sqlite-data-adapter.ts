@@ -138,6 +138,8 @@ export class NodeSqliteDataAdapter<T extends EmbeddingEntity> {
   ): Promise<void> {
     try {
       if (entities.length === 0 && deletedKeys.length === 0) return Promise.resolve();
+      // The save batch resets _remove_all_embeddings, so capture cleared keys first.
+      const clearedKeys = entities.filter((e) => e._remove_all_embeddings).map((e) => e.key);
       executeNodeSqliteSaveBatch(
         this.requireDb(),
         this.collection,
@@ -153,7 +155,7 @@ export class NodeSqliteDataAdapter<T extends EmbeddingEntity> {
             this._vectorIndex.upsert(entity.key, f32);
           }
         }
-        for (const key of deletedKeys) {
+        for (const key of [...deletedKeys, ...clearedKeys]) {
           this._vectorIndex.remove(key);
         }
       }

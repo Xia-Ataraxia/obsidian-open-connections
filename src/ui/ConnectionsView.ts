@@ -104,15 +104,18 @@ export class ConnectionsView extends ItemView {
       this.updateProgressBanner();
     }));
     this.register(onModelDownload((snapshot) => syncModelDownload(this, snapshot)));
-    this.registerEvent(this.app.workspace.on('layout-change', () => {
-      if (this._needsRefresh && typeof this.container?.checkVisibility === 'function' && this.container.checkVisibility()) {
-        this._needsRefresh = false;
-        void this.renderView(this.lastRenderedPath ?? undefined);
-      }
-    }));
 
     const active = this.app.workspace.getActiveFile();
     if (active) await this.renderView(active.path);
+  }
+
+  // Switching sidebar tabs fires no layout-change, but the revealed view is resized.
+  onResize(): void {
+    if (this._needsRefresh && typeof this.container?.checkVisibility === 'function' && this.container.checkVisibility()) {
+      this._needsRefresh = false;
+      // While hidden, file-open renders were skipped; follow the active note unless pinned.
+      void this.renderView(this.session.paused ? (this.session.pausedPath ?? this.lastRenderedPath ?? undefined) : undefined);
+    }
   }
 
   onClose(): Promise<void> {

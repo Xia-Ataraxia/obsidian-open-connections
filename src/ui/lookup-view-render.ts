@@ -8,7 +8,9 @@ import {
   formatLookupPath,
   formatLookupTitle,
   scoreTierFor,
+  splitNoteKey,
 } from './lookup-view-format';
+import type { LookupFilter } from './lookup-view-format';
 
 interface LookupViewRenderContext {
   app: SmartConnectionsPlugin['app'];
@@ -16,6 +18,7 @@ interface LookupViewRenderContext {
   resultsContainer: HTMLElement;
   searchMetaEl: HTMLElement;
   lastQuery: string;
+  activeFilter: LookupFilter;
   registerDomEvent: (el: HTMLElement, type: string, callback: (event: Event) => void) => void;
   retrySearch: () => void;
 }
@@ -45,7 +48,10 @@ export function renderLookupResults(
   clearElement(view.resultsContainer);
   if (!results.length) {
     clearElement(view.searchMetaEl);
-    showLookupEmpty(view, `No results found for "${query}"`, false);
+    const message = (view.plugin.block_collection?.embeddedCount ?? 0) === 0
+      ? 'No notes are embedded yet. Results appear once embedding finishes.'
+      : `No results found for "${query}"`;
+    showLookupEmpty(view, message, false);
     return;
   }
 
@@ -59,7 +65,9 @@ export function renderLookupResults(
     if (!result) continue;
 
     const score = result.score ?? result.sim ?? 0;
-    const key = result.item?.key ?? '';
+    const blockKey = result.item?.key ?? '';
+    // Notes are ranked by their best block, but each row stands for the whole note.
+    const key = view.activeFilter === 'notes' ? splitNoteKey(blockKey).path : blockKey;
     const fullPath = key.split('#')[0] ?? '';
     const threshold = view.plugin.settings?.smart_view_filter?.highlight_threshold ?? 0.8;
     const tier = scoreTierFor(score, threshold);
