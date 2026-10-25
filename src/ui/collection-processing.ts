@@ -40,7 +40,7 @@ export async function processNewSourcesChunked(plugin: SmartConnectionsPlugin): 
 
     const processed = Math.min(index + DISCOVERY_CHUNK, total);
     plugin.logger.debug(`[SC] Processed ${processed}/${total} files`);
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
   }
 
   // Re-enable everything — source discovery is done

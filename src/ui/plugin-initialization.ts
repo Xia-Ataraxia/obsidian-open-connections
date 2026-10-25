@@ -118,7 +118,7 @@ export async function initializeEmbedding(
   lifecycle: number = plugin._lifecycle_epoch,
 ): Promise<void> {
   if (!isCurrentLifecycle(plugin, lifecycle)) return;
-  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
   if (!isCurrentLifecycle(plugin, lifecycle)) return;
 
   const start = performance.now();
@@ -153,7 +153,7 @@ export async function initializeEmbedding(
 
     // Phase 3: Background block import — deferred so UI stays responsive
     if (!plugin._unloading && isCurrentLifecycle(plugin, lifecycle)) {
-      setTimeout(() => {
+      window.setTimeout(() => {
         void (async () => {
           if (plugin._unloading || !isCurrentLifecycle(plugin, lifecycle)) return;
           plugin.logger.debug('[SC][Init] ▶ Phase 3: Background block import');
@@ -193,7 +193,7 @@ export async function waitForSync(plugin: SmartConnectionsPlugin): Promise<void>
 
   plugin.logger.debug('[SC][Init] Waiting for Obsidian Sync to finish...');
   const deadline = Date.now() + 60_000;
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => window.setTimeout(resolve, 1000));
 
   while (obsidianIsSyncing(plugin)) {
     if (plugin._unloading) {
@@ -204,7 +204,7 @@ export async function waitForSync(plugin: SmartConnectionsPlugin): Promise<void>
       plugin.logger.warn('[SC][Init] Sync wait timed out after 60s, proceeding without sync completion');
       return;
     }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
   }
 
   plugin.logger.debug('[SC][Init] Obsidian Sync complete');

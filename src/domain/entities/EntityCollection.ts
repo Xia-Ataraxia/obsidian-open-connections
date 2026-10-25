@@ -59,7 +59,7 @@ export abstract class EntityCollection<T extends EmbeddingEntity> {
 
     if (!item) {
       const ItemType = this.get_item_type();
-      item = new ItemType(this, data as EntityData);
+      item = new ItemType(this, data);
       this.items[item.key] = item;
       item._queue_save = true;
       this.onItemAdded(item);

@@ -45,7 +45,7 @@ export async function embed_api_batch(
     const raw = inputs[i];
     if (!raw) continue;
     const embed_input = 'embed_input' in raw ? raw.embed_input : raw._embed_input;
-    normalized.push({ item: { ...raw, embed_input } as EmbedInput, originalIndex: i });
+    normalized.push({ item: { ...raw, embed_input }, originalIndex: i });
   }
 
   const prepared: PreparedEntry[] = await Promise.all(
@@ -69,7 +69,7 @@ export async function embed_api_batch(
     ...entry.item,
     vec: [],
     tokens: 0,
-  } as EmbedResult));
+  }));
   const valid = prepared.filter((entry): entry is PreparedEntry & { prepared: string } => entry.prepared !== null);
   if (valid.length === 0) {
     return results;

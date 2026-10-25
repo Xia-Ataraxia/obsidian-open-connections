@@ -70,7 +70,7 @@ export class TransformersEmbedAdapter {
     if (this.iframe && !this.loaded) await this.unload();
     document.getElementById(this.iframe_id)?.remove();
 
-    this.iframe = document.createElement('iframe');
+    this.iframe = createEl('iframe');
     this.iframe.classList.add('osc-hidden');
     this.iframe.id = this.iframe_id;
     document.body.appendChild(this.iframe);

@@ -69,13 +69,13 @@ export async function handleNewUser(plugin: SmartConnectionsPlugin): Promise<voi
   await saveInstalledAt(plugin, Date.now());
   await setLastKnownVersion(plugin, plugin.manifest.version);
 
-  setTimeout(() => {
+  window.setTimeout(() => {
     ConnectionsView.open(plugin.app.workspace);
   }, 1000);
 
-  const ws = plugin.app.workspace as unknown as { rightSplit?: { collapsed: boolean; toggle(): void } };
-  if (ws.rightSplit?.collapsed) {
-    ws.rightSplit?.toggle();
+  const { rightSplit } = plugin.app.workspace;
+  if (rightSplit?.collapsed) {
+    rightSplit.toggle();
   }
 
   await addToGitignore(plugin, '\n\n# Ignore Smart Environment folder\n.smart-env');

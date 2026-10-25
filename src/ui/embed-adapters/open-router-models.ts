@@ -18,7 +18,7 @@ export function parse_open_router_model_data(
   model_data: Record<string, unknown> | unknown[],
   fallback_max_tokens: number,
 ): Record<string, ModelInfo> {
-  let list: Record<string, unknown>[] = [];
+  let list: Record<string, unknown>[];
   if (Array.isArray((model_data as Record<string, unknown>)?.data)) {
     list = (model_data as Record<string, unknown>).data as Record<string, unknown>[];
   } else if (Array.isArray(model_data)) {

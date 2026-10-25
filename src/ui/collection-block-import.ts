@@ -67,7 +67,7 @@ export async function importBlocksChunked(
       plugin.logger.debug(`[SC] Block import: ${importedCount}/${totalCount}`);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, YIELD_MS));
+    await new Promise((resolve) => window.setTimeout(resolve, YIELD_MS));
   }
 
   await plugin.block_collection.data_adapter.save();
