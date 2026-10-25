@@ -70,6 +70,21 @@ export function renderFilterButton(
       );
     }
 
+    const hiddenCount = view.session.hiddenKeys.length;
+    if (hiddenCount > 0) {
+      menu.addSeparator();
+      menu.addItem((item) =>
+        item
+          .setTitle(`Show ${hiddenCount} hidden connection${hiddenCount === 1 ? '' : 's'}`)
+          .setIcon('eye')
+          .onClick(() => {
+            view.session.hiddenKeys = [];
+            void saveConnectionsSession(view);
+            void view.renderView(targetPath);
+          }),
+      );
+    }
+
     menu.showAtMouseEvent(new MouseEvent('click', {
       clientX: filterBtn.getBoundingClientRect().left,
       clientY: filterBtn.getBoundingClientRect().bottom,
