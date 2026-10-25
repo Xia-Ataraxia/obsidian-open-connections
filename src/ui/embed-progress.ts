@@ -74,6 +74,7 @@ export function renderEmbedProgress(
 
     if (phase <= 1) {
       wrapper.addClass('osc-embed-progress--indeterminate');
+      bar.setValue(30);
     } else {
       wrapper.removeClass('osc-embed-progress--indeterminate');
     }

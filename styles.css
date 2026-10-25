@@ -113,7 +113,6 @@
 
 /* Indeterminate bar animation (phase 0 & 1) */
 .osc-embed-progress--indeterminate .setting-progress-bar-inner {
-  width: 30% !important;
   animation: osc-progress-indeterminate 1.5s ease-in-out infinite;
 }
 

@@ -7,7 +7,7 @@ const TOKEN_BYTES = 24;
 
 export function createMcpAuthToken(): string {
   const bytes = new Uint8Array(TOKEN_BYTES);
-  globalThis.crypto?.getRandomValues?.(bytes);
+  crypto.getRandomValues(bytes);
   if (bytes.some((byte) => byte !== 0)) {
     return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
   }
