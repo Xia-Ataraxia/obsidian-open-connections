@@ -86,7 +86,6 @@ export function renderLookupResults(
     });
     item.setCssProps({ '--osc-lookup-delay': `${index * 30}ms` });
 
-    item.createDiv({ cls: `osc-lookup-result-bar osc-lookup-result-bar--${tier}` });
     const body = item.createDiv({ cls: 'osc-lookup-result-body' });
     const header = body.createDiv({ cls: 'osc-lookup-result-header' });
     header.createSpan({
