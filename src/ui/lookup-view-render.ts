@@ -1,4 +1,5 @@
-import { ButtonComponent, Platform, setIcon } from 'obsidian';
+import { ButtonComponent, setIcon } from 'obsidian';
+import type { ItemView } from 'obsidian';
 
 import type SmartConnectionsPlugin from '../main';
 import type { ConnectionResult } from '../types/entities';
@@ -19,9 +20,13 @@ interface LookupViewRenderContext {
   searchMetaEl: HTMLElement;
   lastQuery: string;
   activeFilter: LookupFilter;
-  registerDomEvent: (el: HTMLElement, type: string, callback: (event: Event) => void) => void;
   retrySearch: () => void;
 }
+
+type LookupResultHost = Pick<ItemView, 'app' | 'registerDomEvent'> & {
+  plugin: SmartConnectionsPlugin;
+  resultsContainer: HTMLElement;
+};
 
 function clearElement(element: HTMLElement): void {
   if (typeof (element as HTMLElement & { empty?: () => void }).empty === 'function') {
@@ -68,7 +73,6 @@ export function renderLookupResults(
     const blockKey = result.item?.key ?? '';
     // Notes are ranked by their best block, but each row stands for the whole note.
     const key = view.activeFilter === 'notes' ? splitNoteKey(blockKey).path : blockKey;
-    const fullPath = key.split('#')[0] ?? '';
     const threshold = view.plugin.settings?.smart_view_filter?.highlight_threshold ?? 0.8;
     const tier = scoreTierFor(score, threshold);
     const item = list.createDiv({
@@ -76,10 +80,11 @@ export function renderLookupResults(
       attr: {
         role: 'listitem',
         tabindex: '0',
+        'data-key': key,
         'aria-label': `${formatLookupTitle(key)} — similarity ${Math.round(score * 100)}%`,
-        style: `--osc-lookup-delay: ${index * 30}ms`,
       },
     });
+    item.setCssProps({ '--osc-lookup-delay': `${index * 30}ms` });
 
     item.createDiv({ cls: `osc-lookup-result-bar osc-lookup-result-bar--${tier}` });
     const body = item.createDiv({ cls: 'osc-lookup-result-body' });
@@ -98,39 +103,59 @@ export function renderLookupResults(
     const blockIndicator = formatLookupBlockIndicator(key);
     if (blockIndicator) body.createDiv({ text: blockIndicator, cls: 'osc-lookup-result-block-indicator' });
 
-    view.registerDomEvent(item, 'click', (event) => {
-      void view.plugin.open_note(key, event as MouseEvent);
-    });
-    view.registerDomEvent(item, 'keydown', (event) => {
-      const keyEvent = event as KeyboardEvent;
-      if (keyEvent.key === 'Enter') {
-        void view.plugin.open_note(key);
-      } else if (keyEvent.key === 'ArrowDown') {
-        keyEvent.preventDefault();
-        (item.nextElementSibling as HTMLElement | null)?.focus();
-      } else if (keyEvent.key === 'ArrowUp') {
-        keyEvent.preventDefault();
-        (item.previousElementSibling as HTMLElement | null)?.focus();
-      }
-    });
-    view.registerDomEvent(item, 'contextmenu', (event) => {
-      showResultContextMenu(view.app, fullPath, event as MouseEvent);
-    });
-    view.registerDomEvent(item, 'mouseover', (event) => {
-      view.app.workspace.trigger('hover-link', {
-        event: event as MouseEvent,
-        source: 'open-connections-lookup',
-        hoverParent: view,
-        targetEl: item,
-        linktext: fullPath,
-      });
-    });
     item.setAttribute('draggable', 'true');
-    view.registerDomEvent(item, 'dragstart', (event) => {
-      const linkText = key.replace(/\.md$/, '').replace(/\.md#/, '#');
-      (event as DragEvent).dataTransfer?.setData('text/plain', `[[${linkText}]]`);
-    });
   }
+}
+
+/**
+ * Wire result interactions once on the results container; rows are rebuilt on every search.
+ */
+export function registerLookupResultEvents(view: LookupResultHost): void {
+  const container = view.resultsContainer;
+  const resultFor = (event: Event): HTMLElement | null => {
+    const item = (event.target as HTMLElement | null)?.closest<HTMLElement>('.osc-lookup-result');
+    return item && container.contains(item) ? item : null;
+  };
+  const pathOf = (item: HTMLElement): string => (item.dataset.key ?? '').split('#')[0] ?? '';
+
+  view.registerDomEvent(container, 'click', (event) => {
+    const item = resultFor(event);
+    if (item) void view.plugin.open_note(item.dataset.key ?? '', event);
+  });
+  view.registerDomEvent(container, 'keydown', (event) => {
+    const item = resultFor(event);
+    if (!item) return;
+    if (event.key === 'Enter') {
+      void view.plugin.open_note(item.dataset.key ?? '');
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      (item.nextElementSibling as HTMLElement | null)?.focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      (item.previousElementSibling as HTMLElement | null)?.focus();
+    }
+  });
+  view.registerDomEvent(container, 'contextmenu', (event) => {
+    const item = resultFor(event);
+    if (item) showResultContextMenu(view.app, pathOf(item), event);
+  });
+  view.registerDomEvent(container, 'mouseover', (event) => {
+    const item = resultFor(event);
+    if (!item) return;
+    view.app.workspace.trigger('hover-link', {
+      event,
+      source: 'open-connections-lookup',
+      hoverParent: view,
+      targetEl: item,
+      linktext: pathOf(item),
+    });
+  });
+  view.registerDomEvent(container, 'dragstart', (event) => {
+    const item = resultFor(event);
+    if (!item) return;
+    const linkText = (item.dataset.key ?? '').replace(/\.md$/, '').replace(/\.md#/, '#');
+    event.dataTransfer?.setData('text/plain', `[[${linkText}]]`);
+  });
 }
 
 export function showLookupLoading(view: LookupViewRenderContext, message = 'Loading…'): void {
@@ -149,11 +174,6 @@ export function showLookupEmpty(
   const iconEl = wrapper.createDiv({ cls: 'osc-lookup-empty-icon' });
   setIcon(iconEl, 'search');
   wrapper.createEl('p', { text: message, cls: 'osc-state-text' });
-  const modKey = Platform?.isMacOS || Platform?.isIosApp ? 'Cmd' : 'Ctrl';
-  wrapper.createEl('p', {
-    text: `${modKey}+Shift+L to focus search`,
-    cls: 'osc-state-hint',
-  });
 }
 
 export function showLookupError(view: LookupViewRenderContext, message = 'An error occurred'): void {
