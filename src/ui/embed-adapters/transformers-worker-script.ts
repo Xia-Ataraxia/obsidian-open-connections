@@ -1,13 +1,16 @@
-export const EMBED_CONNECTOR = `
-// Transformers.js is pinned and kept inside a sandboxed srcdoc iframe.
-// Parent trust is still source + channel-token + schema based, never origin based.
+export const EMBED_WORKER_SCRIPT = `
+// Runs in a dedicated module Worker so ONNX inference never blocks the Obsidian renderer.
+// A dedicated Worker is only reachable by its creator; large buffers cross as transferables.
+// Electron exposes Node globals to workers; hide them so Transformers.js picks its browser backends.
+for (const name of ['process', 'require', 'module', 'Buffer']) {
+  try { Object.defineProperty(self, name, { value: undefined, configurable: true, writable: true }); } catch (e) { /* non-configurable */ }
+}
 let pipeline = null;
 let tokenizer = null;
 let current_model_key = null;
-let processing_message = false;
 let gpu_diag = { backend: 'none', logs: [] };
 function gpu_log(msg) {
-  console.log(msg);
+  self.postMessage({ type: 'log', message: msg });
   if (gpu_diag.logs.length >= 50) gpu_diag.logs.shift();
   gpu_diag.logs.push(msg);
 }
@@ -32,24 +35,16 @@ async function is_webgpu_available() {
   }
 }
 
-// The sandboxed iframe has no Cache API / IndexedDB, so model files are persisted by the parent.
+// Workers spawned from a blob URL get an opaque origin, so model files are persisted by the main thread.
 const pending_cache = new Map();
 let cache_seq = 0;
 function cache_call(type, key, body) {
   return new Promise((resolve) => {
     const cache_id = cache_seq++;
     pending_cache.set(cache_id, resolve);
-    window.parent.postMessage({ iframe_id: IFRAME_ID, channel_token: CHANNEL_TOKEN, type, cache_id, key, body }, '*');
+    self.postMessage({ type, cache_id, key, body }, body ? [body] : []);
   });
 }
-window.addEventListener('message', (event) => {
-  const d = event.data;
-  if (event.source !== window.parent || !d || d.iframe_id !== IFRAME_ID || d.channel_token !== CHANNEL_TOKEN) return;
-  const resolve = pending_cache.get(d.cache_id);
-  if (!resolve) return;
-  pending_cache.delete(d.cache_id);
-  resolve(d);
-});
 const parent_cache = {
   async match(key) {
     const r = await cache_call('cache_get', String(key));
@@ -70,7 +65,7 @@ function report_progress(p) {
   last_progress_at = now;
   const total = Number(p.total) || 0;
   const loaded = finished ? total : Number(p.loaded) || 0;
-  window.parent.postMessage({ iframe_id: IFRAME_ID, channel_token: CHANNEL_TOKEN, type: 'progress', file: p.file, loaded, total }, '*');
+  self.postMessage({ type: 'progress', file: p.file, loaded, total });
 }
 
 async function load_transformers_with_fallback(model_key, use_gpu) {
@@ -91,7 +86,7 @@ async function load_transformers_with_fallback(model_key, use_gpu) {
   ] : [{ quantized: true }, { quantized: false }];
 
   if (!use_gpu && env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-    env.backends.onnx.wasm.numThreads = 8;
+    env.backends.onnx.wasm.numThreads = Math.max(1, Math.min(4, Math.floor((navigator.hardwareConcurrency || 4) / 2)));
   }
 
   let last_error = null;
@@ -194,7 +189,6 @@ function is_plain_object(value) {
 function assert_request_schema(data) {
   if (!is_plain_object(data)) throw new Error('Malformed request');
   if (!Number.isSafeInteger(data.id) || data.id < 0) throw new Error('Malformed request id');
-  if (typeof data.iframe_id !== 'string' || typeof data.channel_token !== 'string') throw new Error('Malformed channel');
   switch (data.method) {
     case 'load':
       if (!is_plain_object(data.params) || typeof data.params.model_key !== 'string' || data.params.model_key.length === 0) throw new Error('Malformed load params');
@@ -215,7 +209,7 @@ function assert_request_schema(data) {
 
 async function process_message(data) {
   assert_request_schema(data);
-  const { method, params, id, iframe_id } = data;
+  const { method, params, id } = data;
   try {
     let result;
     switch (method) {
@@ -232,17 +226,11 @@ async function process_message(data) {
         break;
       case 'embed_batch':
         if (!pipeline) throw new Error('Model not loaded');
-        while (processing_message) await new Promise(r => setTimeout(r, 100));
-        processing_message = true;
         result = await process_batch(params.inputs, params.max_tokens || 512, params.batch_size || 8);
-        processing_message = false;
         break;
       case 'count_tokens':
         if (!tokenizer) throw new Error('Tokenizer not loaded');
-        while (processing_message) await new Promise(r => setTimeout(r, 100));
-        processing_message = true;
         result = await count_tokens(params);
-        processing_message = false;
         break;
       case 'get_gpu_diag':
         result = gpu_diag;
@@ -250,9 +238,24 @@ async function process_message(data) {
       default:
         throw new Error('Unknown method: ' + method);
     }
-    return { id, result, iframe_id };
+    return { id, result };
   } catch (error) {
-    return { id, error: error.message, iframe_id };
+    return { id, error: error.message };
   }
 }
+
+self.addEventListener('message', async (event) => {
+  const data = event.data;
+  if (data && data.type === 'cache_reply') {
+    const resolve = pending_cache.get(data.cache_id);
+    if (resolve) { pending_cache.delete(data.cache_id); resolve(data); }
+    return;
+  }
+  try {
+    self.postMessage(await process_message(data));
+  } catch (error) {
+    self.postMessage({ id: data && data.id, error: error.message });
+  }
+});
+self.postMessage({ type: 'ready' });
 `;

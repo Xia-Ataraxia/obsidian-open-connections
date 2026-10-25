@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ModelDownloadTracker, formatMegabytes } from '../src/domain/model-download-progress';
-import { EMBED_CONNECTOR } from '../src/ui/embed-adapters/transformers-connector';
+import { EMBED_WORKER_SCRIPT } from '../src/ui/embed-adapters/transformers-worker-script';
 
 describe('ModelDownloadTracker', () => {
   it('is indeterminate until a file reports a total, then aggregates files', () => {
@@ -22,8 +22,8 @@ describe('ModelDownloadTracker', () => {
 
 describe('model cache bridge', () => {
   it('labels quota errors only when the message says quota', () => {
-    expect(EMBED_CONNECTOR).toContain("last_message.toLowerCase().includes('quota')");
-    expect(EMBED_CONNECTOR).not.toContain("includes('storage')");
+    expect(EMBED_WORKER_SCRIPT).toContain("last_message.toLowerCase().includes('quota')");
+    expect(EMBED_WORKER_SCRIPT).not.toContain("includes('storage')");
   });
 });
 
