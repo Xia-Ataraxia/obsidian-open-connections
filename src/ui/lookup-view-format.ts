@@ -37,3 +37,9 @@ export function dedupeLookupResults(results: ConnectionResult[], limit: number):
   }
   return unique;
 }
+
+/** Split a source or block key (`path.md#H1#H2`) into the file path and the deepest heading. */
+export function splitNoteKey(key: string): { path: string; heading: string } {
+  const [path = '', ...headings] = key.split('#');
+  return { path, heading: headings[headings.length - 1] ?? '' };
+}
