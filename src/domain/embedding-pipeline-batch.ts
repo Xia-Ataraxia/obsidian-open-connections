@@ -7,6 +7,9 @@ import {
   index_results,
 } from './embedding-pipeline-results';
 
+// Shared with the standalone MCP (Node, no `window`).
+const timerHost = (): typeof window => (typeof window !== 'undefined' ? window : window);
+
 export function filter_by_hash(
   batch: EmbeddingEntity[],
   expected_hashes?: Record<string, string>,
@@ -120,7 +123,7 @@ export async function process_batch(
       last_error = error as Error;
       retries++;
       if (retries <= max_retries) {
-        await new Promise((resolve) => window.setTimeout(resolve, compute_backoff(retries, error)));
+        await new Promise((resolve) => timerHost().setTimeout(resolve, compute_backoff(retries, error)));
       }
     }
   }
