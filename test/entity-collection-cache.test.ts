@@ -31,7 +31,7 @@ function makeEntity(
   key: string,
   opts: { hasEmbed: boolean; shouldEmbed: boolean },
 ): EmbeddingEntity {
-  const entity = new EmbeddingEntity(collection as any, { path: key, embeddings: {} });
+  const entity = new EmbeddingEntity(collection, { path: key, embeddings: {} });
   // Override the two computed properties the cache depends on
   Object.defineProperty(entity, 'has_embed', { value: () => opts.hasEmbed, writable: true });
   Object.defineProperty(entity, 'should_embed', { get: () => opts.shouldEmbed, configurable: true });

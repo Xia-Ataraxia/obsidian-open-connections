@@ -1,53 +1,26 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> Git strategy, branch naming, commit convention, and release management are defined in the **root CLAUDE.md**. This file covers plugin-specific details only.
-
 ## Project Overview
 
-Open Smart Connections is an Obsidian plugin (TypeScript, esbuild) that uses local embeddings to surface semantically related notes. It provides a **Connections** view showing notes related to the current file and a **Lookup** view for semantic search across the vault. Embedding runs in-browser via a srcdoc iframe using Transformers.js (WebGPU Metal-3 confirmed, WASM fallback). Vector search uses an in-memory `FlatVectorIndex` (contiguous Float32Array, 5-15ms queries).
+Open Connections (manifest id `open-connections`) is an Obsidian plugin (TypeScript, esbuild, Bun) that uses embeddings to surface semantically related notes: a **Connections** view for the current file and a **Lookup** view for semantic search. Local embedding runs via Transformers.js; vector search uses an in-memory `FlatVectorIndex`.
 
-## Build Commands
+## Commands
 
 ```bash
-pnpm run dev           # vault selection + esbuild watch + hot reload (delegate mode)
-pnpm run dev:build     # esbuild watch only (no vault interaction)
-pnpm run build         # production build -> dist/ (single-shot)
-pnpm run test          # Vitest unit tests
-pnpm run test:watch    # Vitest in watch mode
-pnpm run lint          # ESLint (src/ and worker/)
-pnpm run lint:fix      # ESLint with auto-fix
-pnpm run ci            # build + lint + test (must pass before release)
-pnpm run typecheck     # tsc --noEmit
-pnpm run typecheck:watch  # tsc --noEmit --watch
+bun run dev        # esbuild watch -> dist/
+bun run build      # production build -> dist/ (main.js, mcp.js, manifest.json, styles.css)
+bun run typecheck  # tsc --noEmit (src only)
+bun run lint       # eslint (recommended + layer boundary rule), 0 warnings expected
+bun run test       # vitest
+bun run ci         # build + typecheck + lint + test (must pass before PR)
 ```
 
-The build process (`esbuild.js`):
-1. Bundles `src/main.ts` to `dist/main.js` using esbuild (CJS format, ES2018 target)
-2. Syncs `manifest.json` version from `package.json`
-3. Copies `manifest.json` and `src/styles.css` to `dist/`
-4. In watch mode, copies output to vaults listed in `DESTINATION_VAULTS` env var and touches `.hotreload`
+Develop against `.dev-vault` only; never copy builds into user vaults. Releases are CI-only (`ci.yml` and `release.yml` call the shared `obsidian-boiler-template` workflows).
 
-## Release
+## Build outputs
 
-1. `pnpm ci` -- MUST pass (build + lint + test)
-2. `pnpm release:patch|minor|major` -- lint:fix, version bump, auto-push tag
-3. GitHub Actions handles CI + Release workflows
-
-**DENIED by settings.json:** `git tag`, `git push --tags`, `gh release` -- only `pnpm release:*` is allowed.
-
-## Local Development
-
-`pnpm dev` uses the unified dev orchestrator (`scripts/dev.mjs`) in delegate mode:
-1. Discovers Obsidian vaults, lets you select one interactively
-2. Sets `DESTINATION_VAULTS` env var with the selected vault path
-3. Runs `dev:build` (esbuild --watch) which handles vault sync internally
-
-Alternatively, set `DESTINATION_VAULTS` directly in `.env`:
-```
-DESTINATION_VAULTS=my-test-vault,another-vault
-```
-
-Use `VAULT_PATH`, `VAULT_NAME`, or `--vault <name>` to skip interactive selection.
+- `dist/main.js`, `dist/manifest.json`, `dist/styles.css`: the plugin (the only release assets).
+- `dist/mcp.js`: standalone MCP server entry (`src/mcp/entry.ts`, ESM, Node-only). Built but not uploaded by the release workflow.
 
 ## Architecture
 
@@ -79,7 +52,7 @@ src/
 │           ├── index.ts        # Store, reducer, selectors, effects, queue
 │           └── types.ts        # State/Event type definitions
 ├── ui/                       # Obsidian-dependent code
-│   ├── settings.ts, settings-model-picker.ts, commands.ts, status-bar.ts
+│   ├── settings*.ts (declarative `getSettingDefinitions()`), commands.ts, status-bar.ts
 │   ├── file-watcher.ts, user-state.ts, block-connections.ts
 │   ├── ConnectionsView.ts, LookupView.ts, result-context-menu.ts
 │   ├── collection-loader.ts   # Source/Block collection init and loading
@@ -90,14 +63,8 @@ src/
 │       ├── lm-studio.ts, open-router.ts, upstage.ts
 ├── types/                    # Pure type definitions — NO obsidian imports
 │   ├── entities.ts, models.ts, settings.ts, obsidian-shims.ts
-├── utils/                    # Pure utility functions (single file)
-│   └── index.ts              # cos_sim, create_hash, results_acc, etc.
-
-scripts/
-├── check-freeze.sh            # Autoresearch harness: UI freeze detection
-├── check-webgpu.sh            # Autoresearch harness: WebGPU activation
-├── check-connections.sh       # Autoresearch harness: Connections View results
-└── check-e2e.sh               # Autoresearch harness: full pipeline
+├── utils/                    # Pure utility functions (cos_sim, create_hash, timer-host, ...)
+├── mcp/                      # Standalone Node MCP server (no obsidian, no window)
 
 test/
 └── *.test.ts                 # Vitest unit/integration tests
@@ -158,37 +125,14 @@ await plugin.notices.mute('embedding_progress');
 await plugin.notices.unmuteAll();
 ```
 
+## Gotchas
+
+- Timers in `domain/`/`utils/`/`mcp/`: use `sleep()` from `src/utils/timer-host.ts`. Inside Obsidian it uses `window`; Node (MCP, tests) injects a host via `setTimerHost()` (`src/mcp/entry.ts`, `test/setup.ts`). Do not use `globalThis`.
+- Do not run `eslint --fix` blindly on `src/mcp/**` or tests: it rewrites `globalThis`/`setTimeout` to `window.*`, which does not exist in Node.
+- Settings use the declarative API (`getSettingDefinitions()`, Obsidian 1.13+, hence `minAppVersion` 1.13.0). Dotted `control.key` paths map to `plugin.settings` via `getControlValue`/`setControlValue`; call `this.update()` (not a full redisplay) after structural changes.
+- Changing DB file names, storage namespaces or plugin id requires migration code, otherwise all notes are re-embedded.
+- Tests are linted via `test/tsconfig.json` but not typechecked.
+
 ## Testing
 
-Tests use Vitest and live in `test/` (`.test.ts` files). Run a single test:
-```bash
-pnpm vitest run test/notices.test.ts
-```
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `src/main.ts` | Plugin class: lifecycle, commands, views, embedding orchestration |
-| `src/domain/config.ts` | DEFAULT_SETTINGS, NOTICE_CATALOG, error classes |
-| `src/domain/embed-model.ts` | EmbedModel + EmbedAdapterRegistry |
-| `src/domain/embedding-pipeline.ts` | Batch embedding pipeline |
-| `src/domain/entities/` | Source/Block entity model + SQLite adapter |
-| `src/domain/embedding/kernel/` | Redux-style embedding state machine |
-| `src/ui/embed-orchestrator.ts` | Model lifecycle, embed jobs, pipeline |
-| `src/ui/collection-loader.ts` | Collection init, chunked pipeline |
-| `src/ui/ConnectionsView.ts` | Connections panel (related notes) |
-| `src/ui/LookupView.ts` | Semantic search panel |
-| `src/ui/embed-adapters/` | Provider adapters (transformers, openai, ollama, etc.) |
-| `src/domain/flat-vector-index.ts` | In-memory Float32Array vector index (cosine similarity, 5-15ms) |
-| `esbuild.js` | Build config (CSS/markdown plugins, vault copy) |
-
-## Resources
-
-- Obsidian Plugin API Docs: https://docs.obsidian.md/Home
-
-## Hot Reload
-
-- `pnpm dev` uses delegate mode: injects `DESTINATION_VAULTS` env, build script handles sync
-- `DESTINATION_VAULTS` in `.env` also works for direct `pnpm dev:build`
-- `.hotreload` file triggers Obsidian change detection
+Vitest, `test/*.test.ts`. Single file: `bun run test test/notices.test.ts`.

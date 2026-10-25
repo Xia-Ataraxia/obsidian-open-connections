@@ -78,6 +78,5 @@ export interface EmbeddingStatusElements {
 export interface SettingsTabDeps {
   app: App;
   plugin: SmartConnectionsPlugin;
-  display: () => void;
   config: SettingsConfigAccessor;
 }

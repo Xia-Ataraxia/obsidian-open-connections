@@ -1,4 +1,4 @@
-import { Notice, Setting } from 'obsidian';
+import { Notice, type SettingGroupItem } from 'obsidian';
 
 import type { ConfigAccessor } from './settings-model-picker-shared';
 import { embedAdapterRegistry } from '../domain/embed-model';
@@ -47,82 +47,87 @@ async function validateApiKey(
   }
 }
 
-export function renderApiKeyField(
-  containerEl: HTMLElement,
-  adapterName: string,
-  config: ConfigAccessor,
-): void {
+export function apiKeyDefinition(adapterName: string, config: ConfigAccessor): SettingGroupItem {
   const currentApiKey = config.getConfig(`smart_sources.embed_model.${adapterName}.api_key`, '');
   const registration = embedAdapterRegistry.get(adapterName);
   const signupUrl = registration?.signupUrl;
-  let debounceTimer: number | null = null;
 
-  const setting = new Setting(containerEl)
-    .setName('API key')
-    .setDesc('API key for authentication')
-    .addText((text) => {
-      text.inputEl.type = 'password';
-      text.setPlaceholder('Enter API key');
-      text.setValue(currentApiKey);
-      text.onChange((value) => {
-        if (debounceTimer) window.clearTimeout(debounceTimer);
-        debounceTimer = window.setTimeout(() => {
-          const trimmed = value.trim();
-          if (trimmed !== currentApiKey) {
-            config.setConfig(`smart_sources.embed_model.${adapterName}.api_key`, trimmed);
-          }
-        }, 500);
-      });
-    })
-    .addButton((button) => {
-      button.setButtonText('Validate');
-      button.onClick(async () => {
-        if (debounceTimer) {
-          window.clearTimeout(debounceTimer);
-          debounceTimer = null;
-          const inputEl = setting.controlEl.querySelector<HTMLInputElement>('input[type="password"]');
-          if (inputEl) {
-            const trimmed = inputEl.value.trim();
-            if (trimmed !== currentApiKey) {
-              config.setConfig(`smart_sources.embed_model.${adapterName}.api_key`, trimmed);
+  return {
+    name: 'API key',
+    desc: 'API key for authentication',
+    render: (setting) => {
+      let debounceTimer: number | null = null;
+      setting
+        .addText((text) => {
+          text.inputEl.type = 'password';
+          text.setPlaceholder('Enter API key');
+          text.setValue(currentApiKey);
+          text.onChange((value) => {
+            if (debounceTimer) window.clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(() => {
+              const trimmed = value.trim();
+              if (trimmed !== currentApiKey) {
+                config.setConfig(`smart_sources.embed_model.${adapterName}.api_key`, trimmed);
+              }
+            }, 500);
+          });
+        })
+        .addButton((button) => {
+          button.setButtonText('Validate');
+          button.onClick(async () => {
+            if (debounceTimer) {
+              window.clearTimeout(debounceTimer);
+              debounceTimer = null;
+              const inputEl = setting.controlEl.querySelector<HTMLInputElement>('input[type="password"]');
+              if (inputEl) {
+                const trimmed = inputEl.value.trim();
+                if (trimmed !== currentApiKey) {
+                  config.setConfig(`smart_sources.embed_model.${adapterName}.api_key`, trimmed);
+                }
+              }
             }
-          }
-        }
-        button.setButtonText('Validating...').setDisabled(true);
-        try {
-          await validateApiKey(adapterName, config, validationStatus);
-        } finally {
-          button.setButtonText('Validate').setDisabled(false);
-        }
-      });
-    });
+            button.setButtonText('Validating...').setDisabled(true);
+            try {
+              await validateApiKey(adapterName, config, validationStatus);
+            } finally {
+              button.setButtonText('Validate').setDisabled(false);
+            }
+          });
+        });
 
-  const validationStatus = setting.descEl.createSpan({ cls: 'osc-api-validation-status' });
-  if (!signupUrl) return;
-  setting.descEl.createEl('br');
-  const linkEl = setting.descEl.createEl('a', {
-    text: `Get ${registration?.displayName ?? adapterName} API key`,
-    href: signupUrl,
-    cls: 'osc-signup-link',
-  });
-  linkEl.setAttr('target', '_blank');
+      const validationStatus = setting.descEl.createSpan({ cls: 'osc-api-validation-status' });
+      if (!signupUrl) return;
+      setting.descEl.createEl('br');
+      const linkEl = setting.descEl.createEl('a', {
+        text: `Get ${registration?.displayName ?? adapterName} API key`,
+        href: signupUrl,
+        cls: 'osc-signup-link',
+      });
+      linkEl.setAttr('target', '_blank');
+      return () => {
+        if (debounceTimer) window.clearTimeout(debounceTimer);
+      };
+    },
+  };
 }
 
-export function renderHostField(
-  containerEl: HTMLElement,
+export function hostDefinition(
   adapterName: string,
   defaultHost: string,
   config: ConfigAccessor,
-): void {
+): SettingGroupItem {
   const currentHost = config.getConfig(`smart_sources.embed_model.${adapterName}.host`, defaultHost);
-  new Setting(containerEl)
-    .setName('Host URL')
-    .setDesc('API endpoint URL')
-    .addText((text) => {
-      text.setPlaceholder(defaultHost);
-      text.setValue(currentHost);
-      text.onChange((value) => {
-        config.setConfig(`smart_sources.embed_model.${adapterName}.host`, value);
+  return {
+    name: 'Host URL',
+    desc: 'API endpoint URL',
+    render: (setting) => {
+      setting.addText((text) => {
+        text.setPlaceholder(defaultHost);
+        text.setValue(currentHost);
+        text.onChange((value) => {
+          config.setConfig(`smart_sources.embed_model.${adapterName}.host`, value);
+        });
       });
-    });
+    },
+  };
 }

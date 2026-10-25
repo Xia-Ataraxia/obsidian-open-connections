@@ -19,6 +19,9 @@ import type { PluginSettings } from '../types/settings';
 import { createStandaloneContext } from './standalone-context';
 import { startStdioTransport } from './stdio-transport';
 import { startHttpTransport } from './http-transport';
+import { setTimerHost } from '../utils/timer-host';
+
+setTimerHost({ setTimeout });
 
 const PLUGIN_ID = 'open-connections';
 const DEFAULT_CONFIG_DIR = ['.', 'obsidian'].join('');

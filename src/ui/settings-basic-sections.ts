@@ -1,154 +1,89 @@
-import { Setting, type App } from 'obsidian';
+import type { SettingGroupItem } from 'obsidian';
 
-import { renderFolderExclusionSettings } from './settings-folder-exclusions-section';
-import type { SettingsConfigAccessor, SmartConnectionsPlugin } from './settings-types';
-
-export function renderSourceSettings(
-  containerEl: HTMLElement,
-  app: App,
-  plugin: SmartConnectionsPlugin,
-  config: SettingsConfigAccessor,
-  redisplay: () => void,
-): void {
-  new Setting(containerEl)
-    .setName('Minimum characters')
-    .setDesc('Skip files shorter than this character count')
-    .addText((text) => {
-      text.inputEl.type = 'number';
-      text.setValue(String(config.getConfig('smart_sources.min_chars', 200)));
-      text.onChange((value) => {
-        config.setConfig('smart_sources.min_chars', parseInt(value) || 200);
-      });
-    });
-
-  new Setting(containerEl)
-    .setName('File exclusions')
-    .setDesc('Comma-separated file name patterns to exclude')
-    .addText((text) => {
-      text.setPlaceholder('Untitled, templates');
-      text.setValue(config.getConfig('smart_sources.file_exclusions', ''));
-      text.onChange((value) => config.setConfig('smart_sources.file_exclusions', value));
-    });
-
-  renderFolderExclusionSettings(containerEl, app, plugin, config, redisplay);
-
-  new Setting(containerEl)
-    .setName('Excluded headings')
-    .setDesc('Comma-separated heading patterns to skip')
-    .addText((text) => {
-      text.setPlaceholder('#draft, #ignore');
-      text.setValue(config.getConfig('smart_sources.excluded_headings', ''));
-      text.onChange((value) => config.setConfig('smart_sources.excluded_headings', value));
-    });
+export function sourceDefinitions(): SettingGroupItem[] {
+  return [
+    {
+      name: 'Minimum characters',
+      desc: 'Skip files shorter than this character count',
+      control: { type: 'number', key: 'smart_sources.min_chars', defaultValue: 200, min: 0 },
+    },
+    {
+      name: 'File exclusions',
+      desc: 'Comma-separated file name patterns to exclude',
+      control: { type: 'text', key: 'smart_sources.file_exclusions', defaultValue: '', placeholder: 'Untitled, templates' },
+    },
+  ];
 }
 
-export function renderBlockSettings(containerEl: HTMLElement, config: SettingsConfigAccessor): void {
-  new Setting(containerEl)
-    .setName('Enable block-level embedding')
-    .setDesc('Embed individual sections for more granular connections')
-    .addToggle((toggle) => {
-      toggle.setValue(config.getConfig('smart_blocks.embed_blocks', true));
-      toggle.onChange((value) => config.setConfig('smart_blocks.embed_blocks', value));
-    });
-
-  new Setting(containerEl)
-    .setName('Minimum block characters')
-    .setDesc('Skip blocks shorter than this character count')
-    .addText((text) => {
-      text.inputEl.type = 'number';
-      text.setValue(String(config.getConfig('smart_blocks.min_chars', 200)));
-      text.onChange((value) => config.setConfig('smart_blocks.min_chars', parseInt(value) || 200));
-    });
-
-  new Setting(containerEl)
-    .setName('Block heading depth')
-    .setDesc('Split blocks at heading levels up to this depth (1=h1 only, 6=all headings). H4+ headings merge into their parent block at the default of 3.')
-    .addSlider((slider) => {
-      slider
-        .setLimits(1, 6, 1)
-        .setValue(config.getConfig('smart_blocks.block_heading_depth', 3))
-        .setDynamicTooltip()
-        .onChange((value) => config.setConfig('smart_blocks.block_heading_depth', value));
-    });
-
-  new Setting(containerEl)
-    .setName('Re-embed minimum change')
-    .setDesc('Skip re-embedding when content change is smaller than this (chars). Saves API costs on trivial edits.')
-    .addSlider((slider) => {
-      slider
-        .setLimits(0, 500, 10)
-        .setValue(config.getConfig('smart_blocks.re_embed_min_change', 200))
-        .setDynamicTooltip()
-        .onChange((value) => config.setConfig('smart_blocks.re_embed_min_change', value));
-    });
-
-  new Setting(containerEl)
-    .setName('Save frequency')
-    .setDesc('Save progress every n batches. Lower = safer on crash, higher = less disk i/o')
-    .addSlider((slider) => {
-      slider
-        .setLimits(1, 50, 1)
-        .setValue(config.getConfig('embed_save_interval', 5))
-        .setDynamicTooltip()
-        .onChange((value) => config.setConfig('embed_save_interval', value));
-    });
-
-  new Setting(containerEl)
-    .setName('Embedding concurrency')
-    .setDesc('Number of batches sent to the API simultaneously. Lower if hitting rate limits.')
-    .addSlider((slider) => {
-      slider
-        .setLimits(1, 10, 1)
-        .setValue(config.getConfig('embed_concurrency', 5))
-        .setDynamicTooltip()
-        .onChange((value) => config.setConfig('embed_concurrency', value));
-    });
-
-  new Setting(containerEl)
-    .setName('Discovery chunk size')
-    .setDesc('Files processed per chunk during vault discovery. Lower = smoother UI, higher = faster.')
-    .addSlider((slider) => {
-      slider
-        .setLimits(100, 5000, 100)
-        .setValue(config.getConfig('discovery_chunk_size', 1000))
-        .setDynamicTooltip()
-        .onChange((value) => config.setConfig('discovery_chunk_size', value));
-    });
+export function excludedHeadingsDefinition(): SettingGroupItem {
+  return {
+    name: 'Excluded headings',
+    desc: 'Comma-separated heading patterns to skip',
+    control: { type: 'text', key: 'smart_sources.excluded_headings', defaultValue: '', placeholder: '#Draft, #ignore' },
+  };
 }
 
-export function renderViewSettings(containerEl: HTMLElement, config: SettingsConfigAccessor): void {
-  new Setting(containerEl)
-    .setName('Highlight threshold')
-    .setDesc('Results above this similarity score are highlighted with your accent color')
-    .addSlider((slider) => {
-      slider
-        .setLimits(0.5, 0.95, 0.05)
-        .setValue(config.getConfig('smart_view_filter.highlight_threshold', 0.8))
-        .setDynamicTooltip()
-        .onChange((value) => config.setConfig('smart_view_filter.highlight_threshold', value));
-    });
+export function blockDefinitions(): SettingGroupItem[] {
+  return [
+    {
+      name: 'Enable block-level embedding',
+      desc: 'Embed individual sections for more granular connections',
+      control: { type: 'toggle', key: 'smart_blocks.embed_blocks', defaultValue: true },
+    },
+    {
+      name: 'Minimum block characters',
+      desc: 'Skip blocks shorter than this character count',
+      control: { type: 'number', key: 'smart_blocks.min_chars', defaultValue: 200, min: 0 },
+    },
+    {
+      name: 'Block heading depth',
+      desc: 'Split blocks at heading levels up to this depth (1=h1 only, 6=all headings). H4+ headings merge into their parent block at the default of 3.',
+      control: { type: 'slider', key: 'smart_blocks.block_heading_depth', defaultValue: 3, min: 1, max: 6, step: 1 },
+    },
+    {
+      name: 'Re-embed minimum change',
+      desc: 'Skip re-embedding when content change is smaller than this (chars). Saves API costs on trivial edits.',
+      control: { type: 'slider', key: 'smart_blocks.re_embed_min_change', defaultValue: 200, min: 0, max: 500, step: 10 },
+    },
+    {
+      name: 'Save frequency',
+      desc: 'Save progress every n batches. Lower = safer on crash, higher = less disk i/o',
+      control: { type: 'slider', key: 'embed_save_interval', defaultValue: 5, min: 1, max: 50, step: 1 },
+    },
+    {
+      name: 'Embedding concurrency',
+      desc: 'Number of batches sent to the API simultaneously. Lower if hitting rate limits.',
+      control: { type: 'slider', key: 'embed_concurrency', defaultValue: 5, min: 1, max: 10, step: 1 },
+    },
+    {
+      name: 'Discovery chunk size',
+      desc: 'Files processed per chunk during vault discovery. Lower = smoother UI, higher = faster.',
+      control: { type: 'slider', key: 'discovery_chunk_size', defaultValue: 1000, min: 100, max: 5000, step: 100 },
+    },
+  ];
+}
 
-  new Setting(containerEl)
-    .setName('Show full path')
-    .setDesc('Display folder path in result titles')
-    .addToggle((toggle) => {
-      toggle.setValue(config.getConfig('smart_view_filter.show_full_path', false));
-      toggle.onChange((value) => config.setConfig('smart_view_filter.show_full_path', value));
-    });
-
-  new Setting(containerEl)
-    .setName('Render Markdown in preview')
-    .setDesc('Render Markdown formatting in hover previews')
-    .addToggle((toggle) => {
-      toggle.setValue(config.getConfig('smart_view_filter.render_markdown', true));
-      toggle.onChange((value) => config.setConfig('smart_view_filter.render_markdown', value));
-    });
-
-  new Setting(containerEl)
-    .setName('Expanded view')
-    .setDesc('Show expanded connection details')
-    .addToggle((toggle) => {
-      toggle.setValue(config.getConfig('smart_view_filter.expanded_view', false));
-      toggle.onChange((value) => config.setConfig('smart_view_filter.expanded_view', value));
-    });
+export function viewDefinitions(): SettingGroupItem[] {
+  return [
+    {
+      name: 'Highlight threshold',
+      desc: 'Results above this similarity score are highlighted with your accent color',
+      control: { type: 'slider', key: 'smart_view_filter.highlight_threshold', defaultValue: 0.8, min: 0.5, max: 0.95, step: 0.05 },
+    },
+    {
+      name: 'Show full path',
+      desc: 'Display folder path in result titles',
+      control: { type: 'toggle', key: 'smart_view_filter.show_full_path', defaultValue: false },
+    },
+    {
+      name: 'Render Markdown in preview',
+      desc: 'Render Markdown formatting in hover previews',
+      control: { type: 'toggle', key: 'smart_view_filter.render_markdown', defaultValue: true },
+    },
+    {
+      name: 'Expanded view',
+      desc: 'Show expanded connection details',
+      control: { type: 'toggle', key: 'smart_view_filter.expanded_view', defaultValue: false },
+    },
+  ];
 }

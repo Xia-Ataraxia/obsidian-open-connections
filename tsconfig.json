@@ -24,6 +24,6 @@
     "strict": false,
     "types": ["node"]
   },
-  "include": ["src/**/*", "worker/**/*", "test/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "lib", "dist"]
 }

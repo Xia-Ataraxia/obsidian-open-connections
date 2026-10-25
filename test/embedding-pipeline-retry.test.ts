@@ -221,8 +221,6 @@ describe('Pipeline retry behavior', () => {
   });
 
   it('uses exponential backoff: 2^retry * 1000ms', async () => {
-    const delays: number[] = [];
-    const originalSetTimeout = globalThis.setTimeout;
 
     const model = makeModel({
       embed_batch: vi.fn(async () => {

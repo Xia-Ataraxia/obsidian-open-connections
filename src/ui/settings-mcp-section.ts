@@ -1,121 +1,105 @@
-import { Setting } from 'obsidian';
+import type { SettingGroupItem } from 'obsidian';
 
 import { createMcpAuthToken, parseMcpSettings } from '../mcp/settings';
 import type { SmartConnectionsPlugin } from './settings-types';
 
-export function renderMcpSettingsSection(
-  containerEl: HTMLElement,
+export function mcpDefinitions(
   plugin: SmartConnectionsPlugin,
-  display: () => void,
-): void {
-  const existingMcpSettings = plugin.settings?.mcp;
-  const mcpSettings = parseMcpSettings(existingMcpSettings);
+  update: () => void,
+): SettingGroupItem[] {
+  const mcpSettings = parseMcpSettings(plugin.settings?.mcp);
   if (plugin.settings) {
     plugin.settings.mcp = mcpSettings;
   }
 
-  new Setting(containerEl).setName('MCP').setHeading();
-  new Setting(containerEl)
-    .setName('Enable local server')
-    .setDesc('Expose the current vault through a local endpoint at http://127.0.0.1:<port>/mcp')
-    .addToggle((toggle) => {
-      toggle.setValue(Boolean(mcpSettings.enabled));
-      toggle.onChange(async (value) => {
-        mcpSettings.enabled = value;
-        await plugin.saveSettings?.();
-        try {
-          await plugin.syncMcpServer?.();
-        } catch (error) {
-          plugin.notices?.show?.('mcp_server_failed', {
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
-        display();
+  const sync = async (): Promise<void> => {
+    await plugin.saveSettings?.();
+    try {
+      await plugin.syncMcpServer?.();
+    } catch (error) {
+      plugin.notices?.show?.('mcp_server_failed', {
+        error: error instanceof Error ? error.message : String(error),
       });
-    });
-
-  new Setting(containerEl)
-    .setName('Local server port')
-    .setDesc('Localhost port for the local endpoint.')
-    .addText((text) => {
-      text.inputEl.type = 'number';
-      text.setValue(String(mcpSettings.port));
-      text.onChange(async (value) => {
-        const port = parseMcpSettings({ ...mcpSettings, port: value }).port;
-        mcpSettings.port = port;
-        await plugin.saveSettings?.();
-        if (mcpSettings.enabled) {
-          try {
-            await plugin.syncMcpServer?.();
-          } catch (error) {
-            plugin.notices?.show?.('mcp_server_failed', {
-              error: error instanceof Error ? error.message : String(error),
-            });
-          }
-        }
-        display();
-      });
-    });
-
-  new Setting(containerEl)
-    .setName('Authentication token')
-    .setDesc('Required as an authorization token for vault-data tools.')
-    .addText((text) => {
-      text.setValue(mcpSettings.authToken);
-      text.inputEl.readOnly = true;
-    })
-    .addButton((button) => {
-      button
-        .setButtonText('Copy')
-        .onClick(async () => {
-          await navigator.clipboard.writeText(mcpSettings.authToken);
-        });
-    })
-    .addButton((button) => {
-      button
-        .setButtonText('Regenerate')
-        .onClick(async () => {
-          mcpSettings.authToken = createMcpAuthToken();
-          await plugin.saveSettings?.();
-          display();
-        });
-    });
-
+    }
+    update();
+  };
   const mcpServer = plugin.getMcpServer?.();
-  new Setting(containerEl)
-    .setName('Local server status')
-    .setDesc(mcpServer?.isRunning ? mcpServer.endpointUrl : 'Server stopped')
-    .addButton((button) => {
-      button
-        .setButtonText(mcpServer?.isRunning ? 'Restart' : 'Start')
-        .onClick(async () => {
-          mcpSettings.enabled = true;
-          await plugin.saveSettings?.();
-          try {
-            await plugin.syncMcpServer?.();
-          } catch (error) {
-            plugin.notices?.show?.('mcp_server_failed', {
-              error: error instanceof Error ? error.message : String(error),
-            });
-          }
-          display();
+
+  return [
+    {
+      name: 'Enable local server',
+      desc: 'Expose the current vault through a local endpoint at http://127.0.0.1:<port>/mcp',
+      render: (setting) => {
+        setting.addToggle((toggle) => {
+          toggle.setValue(Boolean(mcpSettings.enabled));
+          toggle.onChange(async (value) => {
+            mcpSettings.enabled = value;
+            await sync();
+          });
         });
-    })
-    .addButton((button) => {
-      button
-        .setButtonText('Stop')
-        .setDisabled(!mcpServer?.isRunning)
-        .onClick(async () => {
-          mcpSettings.enabled = false;
-          await plugin.saveSettings?.();
-          try {
-            await plugin.syncMcpServer?.();
-          } catch (error) {
-            plugin.notices?.show?.('mcp_server_failed', {
-              error: error instanceof Error ? error.message : String(error),
-            });
-          }
-          display();
+      },
+    },
+    {
+      name: 'Local server port',
+      desc: 'Localhost port for the local endpoint.',
+      render: (setting) => {
+        setting.addText((text) => {
+          text.inputEl.type = 'number';
+          text.setValue(String(mcpSettings.port));
+          text.onChange(async (value) => {
+            mcpSettings.port = parseMcpSettings({ ...mcpSettings, port: value }).port;
+            await plugin.saveSettings?.();
+            if (mcpSettings.enabled) await sync();
+          });
         });
-    });
+      },
+    },
+    {
+      name: 'Authentication token',
+      desc: 'Required as an authorization token for vault-data tools.',
+      searchable: false,
+      render: (setting) => {
+        setting
+          .addText((text) => {
+            text.setValue(mcpSettings.authToken);
+            text.inputEl.readOnly = true;
+          })
+          .addButton((button) => {
+            button.setButtonText('Copy').onClick(async () => {
+              await navigator.clipboard.writeText(mcpSettings.authToken);
+            });
+          })
+          .addButton((button) => {
+            button.setButtonText('Regenerate').onClick(async () => {
+              mcpSettings.authToken = createMcpAuthToken();
+              await plugin.saveSettings?.();
+              update();
+            });
+          });
+      },
+    },
+    {
+      name: 'Local server status',
+      desc: mcpServer?.isRunning ? mcpServer.endpointUrl : 'Server stopped',
+      searchable: false,
+      render: (setting) => {
+        setting
+          .addButton((button) => {
+            button.setButtonText(mcpServer?.isRunning ? 'Restart' : 'Start').onClick(async () => {
+              mcpSettings.enabled = true;
+              await sync();
+            });
+          })
+          .addButton((button) => {
+            button
+              .setButtonText('Stop')
+              .setDisabled(!mcpServer?.isRunning)
+              .onClick(async () => {
+                mcpSettings.enabled = false;
+                await sync();
+              });
+          });
+      },
+    },
+  ];
 }

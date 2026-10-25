@@ -4,10 +4,8 @@
  *              Provides fast cosine similarity search without SQLite at query time.
  */
 
+import { sleep } from '../utils/timer-host';
 import type { SearchFilter } from '../types/entities';
-
-// Shared with the standalone MCP (Node, no `window`).
-const timerHost = (): typeof globalThis => (typeof window !== 'undefined' ? window : globalThis);
 
 export type VectorMatch = { entity_key: string; score: number };
 
@@ -87,7 +85,7 @@ export class FlatVectorIndex {
       }
 
       if (end < this._size) {
-        await new Promise<void>(r => timerHost().setTimeout(r, 0));
+        await sleep(0);
       }
     }
 

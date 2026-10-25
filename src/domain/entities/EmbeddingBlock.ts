@@ -5,7 +5,7 @@
  */
 
 import { EmbeddingEntity } from './EmbeddingEntity';
-import type { BlockData, EntityData } from '../../types/entities';
+import type { BlockData } from '../../types/entities';
 import { getParagraphCoverage } from './block-paragraph-coverage';
 import { truncateEmbedInput } from './embed-input-limit';
 import type { BlockCollection } from './BlockCollection';

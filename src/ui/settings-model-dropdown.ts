@@ -1,24 +1,20 @@
+import type { SettingGroupItem } from 'obsidian';
+
 import type { ModelPickerDeps } from './settings-model-picker-shared';
 import { getKnownModels } from './settings-model-picker-shared';
-import { renderFreeformModelInput } from './settings-model-dropdown-freeform';
-import { renderKnownModelDropdown } from './settings-model-dropdown-known';
-import { renderOllamaModelPicker } from './settings-model-dropdown-ollama';
+import { freeformModelDefinitions } from './settings-model-dropdown-freeform';
+import { knownModelDefinitions } from './settings-model-dropdown-known';
+import { ollamaModelDefinitions } from './settings-model-dropdown-ollama';
 
-export function renderModelDropdown(deps: ModelPickerDeps): void {
+export function modelDefinitions(deps: ModelPickerDeps): SettingGroupItem[] {
   const currentModelKey = deps.config.getConfig(
     `smart_sources.embed_model.${deps.adapterName}.model_key`,
     '',
   );
-  if (deps.adapterName === 'ollama') {
-    renderOllamaModelPicker(deps, currentModelKey);
-    return;
-  }
+  if (deps.adapterName === 'ollama') return ollamaModelDefinitions(deps, currentModelKey);
 
   const knownModels = getKnownModels()[deps.adapterName];
-  if (knownModels) {
-    renderKnownModelDropdown(deps, currentModelKey, knownModels);
-    return;
-  }
+  if (knownModels) return knownModelDefinitions(deps, currentModelKey, knownModels);
 
-  renderFreeformModelInput(deps, currentModelKey);
+  return freeformModelDefinitions(deps, currentModelKey);
 }

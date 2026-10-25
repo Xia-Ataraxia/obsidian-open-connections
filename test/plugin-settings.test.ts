@@ -21,7 +21,7 @@ describe('hydratePluginSettings', () => {
           },
         },
       },
-    } as Record<string, unknown>);
+    });
 
     const embedModel = normalized.settings.smart_sources.embed_model as Record<string, unknown>;
     const upstage = embedModel.upstage as Record<string, unknown>;
@@ -42,7 +42,7 @@ describe('hydratePluginSettings', () => {
           },
         },
       },
-    } as Record<string, unknown>);
+    });
 
     const embedModel = normalized.settings.smart_sources.embed_model as Record<string, unknown>;
     const gemini = embedModel.gemini as Record<string, unknown>;

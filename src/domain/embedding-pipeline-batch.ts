@@ -1,3 +1,4 @@
+import { sleep } from '../utils/timer-host';
 import type { EmbeddingEntity } from '../types/entities';
 import type { EmbedModelAdapter, EmbedResult } from '../types/models';
 import { create_hash } from '../utils';
@@ -6,9 +7,6 @@ import {
   create_retry_exhausted_error,
   index_results,
 } from './embedding-pipeline-results';
-
-// Shared with the standalone MCP (Node, no `window`).
-const timerHost = (): typeof globalThis => (typeof window !== 'undefined' ? window : globalThis);
 
 export function filter_by_hash(
   batch: EmbeddingEntity[],
@@ -123,7 +121,7 @@ export async function process_batch(
       last_error = error as Error;
       retries++;
       if (retries <= max_retries) {
-        await new Promise((resolve) => timerHost().setTimeout(resolve, compute_backoff(retries, error)));
+        await sleep(compute_backoff(retries, error));
       }
     }
   }

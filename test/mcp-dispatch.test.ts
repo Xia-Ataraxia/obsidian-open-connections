@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { dispatchMcpRequest } from '../src/mcp/dispatch';
-import type { McpContext, McpSearchResult, McpCollectionStats, McpModelInfo } from '../src/types/mcp-context';
+import type { McpContext, McpSearchResult } from '../src/types/mcp-context';
 
 function makeCtx(overrides: Partial<McpContext> = {}): McpContext {
   const defaultResults: McpSearchResult[] = [

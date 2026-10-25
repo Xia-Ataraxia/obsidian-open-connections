@@ -1,4 +1,4 @@
-import { Setting } from 'obsidian';
+import type { SettingGroupItem } from 'obsidian';
 
 import { renderEmbedProgress } from './embed-progress';
 import { getRuntimeState } from './settings-status-runtime-state';
@@ -7,34 +7,53 @@ import { updateStatusPills } from './settings-status-pills';
 import { renderStatsGrid, updateStatsGrid } from './settings-status-stats-grid';
 import type { EmbeddingStatusElements, SmartConnectionsPlugin } from './settings-types';
 
-export function renderEmbeddingStatus(
-  containerEl: HTMLElement,
-  plugin: SmartConnectionsPlugin,
-): EmbeddingStatusElements {
-  const activeCtx = plugin.getActiveEmbeddingContext?.() ?? null;
-  const status = plugin.status_state ?? 'idle';
-
-  const statusRowEl = containerEl.createDiv({ cls: 'osc-model-status' });
-  updateStatusPills(plugin, statusRowEl);
-
-  const statsGridEl = renderStatsGrid(containerEl, plugin);
-
-  const embedProgress = renderEmbedProgress(containerEl, plugin);
-  const runSetting = new Setting(containerEl)
-    .setName('Current run')
-    .setDesc('-');
-
-  const elements: EmbeddingStatusElements = {
+export function createStatusElements(): EmbeddingStatusElements {
+  return {
     eventRefs: [],
-    statusRowEl,
-    statsGridEl,
-    currentRunEl: runSetting.descEl,
-    currentRunSettingEl: runSetting.settingEl,
-    embedProgress,
+    statusRowEl: null,
+    statsGridEl: null,
+    currentRunEl: null,
+    currentRunSettingEl: null,
+    embedProgress: null,
   };
+}
 
-  updateEmbeddingStatusOnly(plugin, elements, activeCtx, status);
-  return elements;
+export function statusDefinitions(
+  plugin: SmartConnectionsPlugin,
+  elements: EmbeddingStatusElements,
+): SettingGroupItem[] {
+  return [
+    {
+      name: 'Status',
+      searchable: false,
+      render: (setting) => {
+        elements.statusRowEl = setting.descEl.createDiv({ cls: 'osc-model-status' });
+        elements.statsGridEl = renderStatsGrid(setting.descEl, plugin);
+        elements.embedProgress = renderEmbedProgress(setting.descEl, plugin);
+        updateEmbeddingStatusOnly(plugin, elements);
+        return () => {
+          elements.embedProgress?.destroy();
+          elements.embedProgress = null;
+          elements.statusRowEl = null;
+          elements.statsGridEl = null;
+        };
+      },
+    },
+    {
+      name: 'Current run',
+      searchable: false,
+      render: (setting) => {
+        elements.currentRunEl = setting.descEl;
+        elements.currentRunSettingEl = setting.settingEl;
+        setting.setDesc('-');
+        updateEmbeddingStatusOnly(plugin, elements);
+        return () => {
+          elements.currentRunEl = null;
+          elements.currentRunSettingEl = null;
+        };
+      },
+    },
+  ];
 }
 
 export function updateEmbeddingStatusOnly(
@@ -55,11 +74,7 @@ export function updateEmbeddingStatusOnly(
   if (!elements.currentRunEl) return;
 
   if (status === 'embedding' && activeCtx) {
-    if (typeof (elements.currentRunSettingEl as HTMLElement & { removeClass?: (cls: string) => void })?.removeClass === 'function') {
-      (elements.currentRunSettingEl as HTMLElement & { removeClass: (cls: string) => void }).removeClass('osc-hidden');
-    } else {
-      elements.currentRunSettingEl?.classList.remove('osc-hidden');
-    }
+    elements.currentRunSettingEl?.removeClass('osc-hidden');
     const runCurrent = activeCtx.current ?? 0;
     const runTotal = activeCtx.total ?? 0;
     const runPercent = runTotal > 0 ? Math.round((runCurrent / runTotal) * 100) : 0;
@@ -72,11 +87,7 @@ export function updateEmbeddingStatusOnly(
   }
 
   if (runtime?.serving.kind === 'degraded') {
-    if (typeof (elements.currentRunSettingEl as HTMLElement & { removeClass?: (cls: string) => void })?.removeClass === 'function') {
-      (elements.currentRunSettingEl as HTMLElement & { removeClass: (cls: string) => void }).removeClass('osc-hidden');
-    } else {
-      elements.currentRunSettingEl?.classList.remove('osc-hidden');
-    }
+    elements.currentRunSettingEl?.removeClass('osc-hidden');
     setElementText(
       elements.currentRunEl,
       runtime.serving.error
@@ -87,18 +98,10 @@ export function updateEmbeddingStatusOnly(
   }
 
   if (status === 'error') {
-    if (typeof (elements.currentRunSettingEl as HTMLElement & { removeClass?: (cls: string) => void })?.removeClass === 'function') {
-      (elements.currentRunSettingEl as HTMLElement & { removeClass: (cls: string) => void }).removeClass('osc-hidden');
-    } else {
-      elements.currentRunSettingEl?.classList.remove('osc-hidden');
-    }
+    elements.currentRunSettingEl?.removeClass('osc-hidden');
     setElementText(elements.currentRunEl, 'Embedding model is unavailable. Check settings and notices for details.');
     return;
   }
 
-  if (typeof (elements.currentRunSettingEl as HTMLElement & { addClass?: (cls: string) => void })?.addClass === 'function') {
-    (elements.currentRunSettingEl as HTMLElement & { addClass: (cls: string) => void }).addClass('osc-hidden');
-  } else {
-    elements.currentRunSettingEl?.classList.add('osc-hidden');
-  }
+  elements.currentRunSettingEl?.addClass('osc-hidden');
 }

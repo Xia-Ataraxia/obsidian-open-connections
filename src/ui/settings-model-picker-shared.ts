@@ -10,20 +10,23 @@ export interface ConfigAccessor {
   setConfig(path: string, value: unknown): void;
 }
 
+export interface CustomModelMode {
+  adapter: string | null;
+}
+
 export interface ModelPickerDeps {
-  containerEl: HTMLElement;
   adapterName: string;
   config: ConfigAccessor;
   confirmReembed: ConfirmReembedFn;
   triggerReEmbed: () => Promise<void>;
-  display: () => void;
+  update: () => void;
+  customModelMode: CustomModelMode;
 }
 
 export interface SearchModelPickerDeps {
-  containerEl: HTMLElement;
   config: ConfigAccessor;
   onChanged: () => void;
-  display: () => void;
+  update: () => void;
 }
 
 export const OLLAMA_QUICK_PICKS: Array<{ value: string; name: string }> = [

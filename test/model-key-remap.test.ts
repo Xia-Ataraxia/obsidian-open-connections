@@ -117,7 +117,7 @@ describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
     const secondColl = createRealEntityCollection('test-model');
     const secondAdapter = new NodeSqliteDataAdapter(secondColl, 'smart_blocks', ns);
     secondAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
-    await secondAdapter.load();
+    secondAdapter.load();
 
     expect(secondColl.all).toHaveLength(1);
     const lazyEntity = secondColl.all[0];
@@ -125,7 +125,7 @@ describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
     expect(lazyEntity.is_unembedded).toBe(false);
 
     // ── Step 3: Save while vec is lazy (simulates autosave / file-watcher) ──
-    (lazyEntity as any)._queue_save = true;
+    (lazyEntity)._queue_save = true;
     await secondAdapter.save();
     closeNodeSqliteDatabases();
 
@@ -133,7 +133,7 @@ describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
     const thirdColl = createRealEntityCollection('test-model');
     const thirdAdapter = new NodeSqliteDataAdapter(thirdColl, 'smart_blocks', ns);
     thirdAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
-    await thirdAdapter.load();
+    thirdAdapter.load();
 
     expect(thirdColl.all).toHaveLength(1);
     expect(thirdColl.all[0].is_unembedded).toBe(false);
