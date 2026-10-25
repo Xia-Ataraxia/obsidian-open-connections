@@ -17,7 +17,7 @@ export default tseslint.config(
 			globals: { ...globals.browser, ...globals.nodeBuiltin },
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ['eslint.config.js', 'vitest.config.ts', 'manifest.json'],
+					allowDefaultProject: ['manifest.json'],
 				},
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: ['.json'],
@@ -78,7 +78,7 @@ export default tseslint.config(
 			}],
 		},
 	},
-	// Worker / MCP server files: run in Node-like context, need node globals.
+	// Worker files: run in Web Worker / Node-like context, need node globals (Buffer, process).
 	{
 		files: ['worker/**/*.ts', 'src/mcp/**/*.ts'],
 		languageOptions: {
@@ -86,21 +86,12 @@ export default tseslint.config(
 		},
 		rules: {
 			'import/no-nodejs-modules': 'off',
+			'obsidianmd/no-global-this': 'off',
 		},
 	},
 	// Config files: legitimately import Node.js built-in modules.
 	{
 		files: ['*.config.ts', '*.config.mts', '*.config.js', '*.config.mjs'],
-		rules: {
-			'import/no-nodejs-modules': 'off',
-		},
-	},
-	// Script files (.mjs): run in Node.js, need node globals.
-	{
-		files: ['scripts/**/*.mjs', '*.mjs'],
-		languageOptions: {
-			globals: { ...globals.node },
-		},
 		rules: {
 			'import/no-nodejs-modules': 'off',
 		},
@@ -129,8 +120,10 @@ export default tseslint.config(
 			'@typescript-eslint/require-await': 'off',
 			'@typescript-eslint/unbound-method': 'off',
 			'obsidianmd/hardcoded-config-path': 'off',
+			'obsidianmd/prefer-window-timers': 'off',
 			'import/no-nodejs-modules': 'off',
 		},
 	},
-	globalIgnores(['**/main.js', 'dist/', 'node_modules/', 'coverage/']),
+	// Node tooling and root configs are not plugin code and sit outside tsconfig (type-aware rules need it).
+	globalIgnores(['dist/', 'node_modules/', 'coverage/', '**/*.mjs', '*.config.ts', '*.config.mts']),
 );

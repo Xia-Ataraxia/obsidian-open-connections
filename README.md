@@ -120,8 +120,8 @@ Model: nomic-embed-text or bge-m3 (after pulling)
 ```bash
 git clone https://github.com/Xia-Ataraxia/obsidian-open-connections.git
 cd obsidian-open-connections
-pnpm install
-pnpm run build
+bun install
+bun run build
 ```
 
 Copy `dist/` contents to your vault's `.obsidian/plugins/open-connections/` directory.
@@ -175,17 +175,17 @@ Open Connections ships MCP support from this same repository/package in two ways
 1. **Inside Obsidian** — enable **Settings → Open Connections → MCP** and start the local server, or run the existing command palette actions:
    - `Open Connections: Start local server`
    - `Open Connections: Stop local server`
-2. **Standalone CLI** — use the packaged bin entry:
+2. **Standalone CLI** — build and run the bundled entry:
 
 ```bash
-pnpm install
-pnpm exec open-connections-mcp /path/to/your/vault
+bun install && bun run build
+node dist/mcp.js /path/to/your/vault
 ```
 
 HTTP mode is also available:
 
 ```bash
-pnpm exec open-connections-mcp /path/to/your/vault --http --port 27124
+node dist/mcp.js /path/to/your/vault --http --port 27124
 ```
 
 The standalone process reads the vault plugin data from `.obsidian/plugins/open-connections/`, so the plugin must already be installed and run at least once for the target vault.
@@ -239,7 +239,7 @@ The standalone process reads the vault plugin data from `.obsidian/plugins/open-
 ### Prerequisites
 
 - Node.js 18+ (recommend 22+)
-- pnpm 10+
+- Bun 1.2+
 - An Obsidian test vault
 
 ### Setup
@@ -247,41 +247,19 @@ The standalone process reads the vault plugin data from `.obsidian/plugins/open-
 ```bash
 git clone https://github.com/Xia-Ataraxia/obsidian-open-connections.git
 cd obsidian-open-connections
-pnpm install
+bun install
 ```
 
 ### Development Commands
 
 ```bash
-pnpm dev              # Vault selection + esbuild watch + hot reload
-pnpm build            # Production build to dist/
-pnpm test             # Run unit tests (Vitest)
-pnpm test:watch       # Run tests in watch mode
-pnpm lint             # ESLint check
-pnpm lint:fix         # Auto-fix linting issues
-pnpm typecheck        # TypeScript type checking
-pnpm run ci           # Full CI pipeline (build + lint + test)
+bun run dev           # esbuild watch to dist/
+bun run build         # Production build to dist/
+bun run test          # Run unit tests (Vitest)
+bun run lint          # ESLint check
+bun run typecheck     # TypeScript type checking
+bun run ci            # Full pipeline (build + typecheck + lint + test)
 ```
-
-### Hot Reload
-
-`pnpm dev` uses Obsidian's hot reload feature. After making changes:
-
-1. The plugin rebuilds automatically (esbuild watch)
-2. Your test vault reloads (if configured correctly)
-3. Changes appear instantly without restarting Obsidian
-
-### Provider Runtime Verification (Test Vault)
-
-For provider triage work, keep a dedicated `Test` vault with the target provider already configured in `.obsidian/plugins/open-connections/data.json`, then run:
-
-```bash
-pnpm run verify:test-vault                                  # generic plugin reload + error smoke check
-bash scripts/check-provider-runtime.sh upstage embedding-passage 4096
-bash scripts/check-upstage.sh                               # longer Upstage embedding run
-```
-
-`check-provider-runtime.sh` is the fast provider smoke probe: it rebuilds the plugin, reloads it in Obsidian, and verifies the active adapter/model/dimensions, `embed_ready`, and dev-error surfaces before you move on to broader issue triage or smoke-matrix work.
 
 ### Tech Stack
 
@@ -330,14 +308,14 @@ We welcome contributions! Please follow these steps:
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
 3. Follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
-4. Run `pnpm run ci` to verify your changes
+4. Run `bun run ci` to verify your changes
 5. Submit a pull request with a clear description
 
 **Note:** This plugin maintains a shared architecture with other Obsidian plugins in the ecosystem. Large changes should be discussed in an issue first.
 
 ### Community Submission Checklist
 
-Before submitting to [obsidian-releases](https://github.com/obsidianmd/obsidian-releases), run `pnpm lint` to catch all [ObsidianReviewBot](https://github.com/obsidianmd/eslint-plugin) violations:
+Before submitting to [obsidian-releases](https://github.com/obsidianmd/obsidian-releases), run `bun run lint` to catch all [ObsidianReviewBot](https://github.com/obsidianmd/eslint-plugin) violations:
 
 | Rule | What to verify |
 |------|---------------|

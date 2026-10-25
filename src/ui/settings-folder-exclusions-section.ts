@@ -1,4 +1,4 @@
-import { Setting, type App } from 'obsidian';
+import type { App, SettingGroupItem } from 'obsidian';
 
 import {
   applyExcludedFolder,
@@ -17,7 +17,7 @@ async function handleAddExcludedFolder(
   app: App,
   plugin: SmartConnectionsPlugin,
   config: SettingsConfigAccessor,
-  redisplay: () => void,
+  update: () => void,
 ): Promise<void> {
   const existing = config.getConfig('smart_sources.folder_exclusions', '');
   const excluded = parseExcludedFolderPaths(existing);
@@ -33,62 +33,51 @@ async function handleAddExcludedFolder(
   if (!confirmed) return;
 
   await applyExcludedFolder(plugin, selected);
-  redisplay();
+  update();
 }
 
-async function handleRemoveExcludedFolder(
-  plugin: SmartConnectionsPlugin,
-  config: SettingsConfigAccessor,
-  redisplay: () => void,
-  folderPath: string,
-): Promise<void> {
-  await removeExcludedFolder(plugin, folderPath);
-  redisplay();
-}
-
-export function renderFolderExclusionSettings(
-  containerEl: HTMLElement,
+export function folderExclusionDefinitions(
   app: App,
   plugin: SmartConnectionsPlugin,
   config: SettingsConfigAccessor,
-  redisplay: () => void,
-): void {
+  update: () => void,
+): SettingGroupItem[] {
   const excludedFolders = parseExcludedFolderPaths(
     config.getConfig('smart_sources.folder_exclusions', ''),
   );
 
-  new Setting(containerEl)
-    .setName('Excluded folders')
-    .setDesc('Choose vault folders to exclude. Confirming will remove existing embeddings for that folder.')
-    .addButton((button) => {
-      button
-        .setButtonText('Add folder')
-        .setCta()
-        .onClick(() => {
-          void handleAddExcludedFolder(app, plugin, config, redisplay);
-        });
-    });
+  const addRow: SettingGroupItem = {
+    name: 'Excluded folders',
+    desc: excludedFolders.length === 0
+      ? 'Choose vault folders to exclude. Confirming will remove existing embeddings for that folder. No excluded folders configured.'
+      : 'Choose vault folders to exclude. Confirming will remove existing embeddings for that folder.',
+    render: (setting) => {
+      setting.addButton((button) => {
+        button
+          .setButtonText('Add folder')
+          .setCta()
+          .onClick(() => {
+            void handleAddExcludedFolder(app, plugin, config, update);
+          });
+      });
+    },
+  };
 
-  if (excludedFolders.length === 0) {
-    containerEl.createEl('p', {
-      text: 'No excluded folders configured.',
-      cls: 'setting-item-description',
-    });
-    return;
-  }
-
-  const list = containerEl.createDiv({ cls: 'osc-excluded-folders-list' });
-  for (const folderPath of excludedFolders) {
-    new Setting(list)
-      .setName(folderPath)
-      .setDesc('Excluded')
-      .addButton((button) => {
+  const folderRows = excludedFolders.map((folderPath): SettingGroupItem => ({
+    name: folderPath,
+    desc: 'Excluded',
+    searchable: false,
+    render: (setting) => {
+      setting.addButton((button) => {
         button
           .setButtonText('×')
           .setClass('mod-warning')
           .onClick(() => {
-            void handleRemoveExcludedFolder(plugin, config, redisplay, folderPath);
+            void removeExcludedFolder(plugin, folderPath).then(update);
           });
       });
-  }
+    },
+  }));
+
+  return [addRow, ...folderRows];
 }

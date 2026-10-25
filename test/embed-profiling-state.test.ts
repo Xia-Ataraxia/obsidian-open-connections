@@ -22,10 +22,7 @@ function createPluginStub() {
     },
   };
 
-  return plugin as unknown as {
-    _embed_profiling: ReturnType<typeof createEmbedProfilingState>;
-    getEmbedProfilingState: () => ReturnType<typeof createEmbedProfilingState>;
-  };
+  return plugin;
 }
 
 describe('embed profiling state', () => {

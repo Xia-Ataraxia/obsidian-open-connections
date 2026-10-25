@@ -7,7 +7,6 @@ describe('ConnectionsReader port', () => {
     expectTypeOf<ConnectionsReader['hasPendingReImport']>().toEqualTypeOf<(path: string) => boolean>();
     expectTypeOf<ConnectionsReader['ensureBlocksForSource']>().toEqualTypeOf<(path: string) => Promise<readonly import('../src/types/obsidian-shims').EmbeddingBlockLike[]>>();
     expectTypeOf<ConnectionsReader['getConnectionsForSource']>().toEqualTypeOf<(path: string, limit?: number) => Promise<readonly import('../src/types/entities').ConnectionResult[]>>();
-    // @ts-expect-error mutators must not exist on the reader
-    type NoMutator = ConnectionsReader['importSourceBlocks'];
+    expectTypeOf<ConnectionsReader>().not.toHaveProperty('importSourceBlocks');
   });
 });

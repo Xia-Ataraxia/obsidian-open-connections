@@ -3,7 +3,7 @@
 .obsidian
 .smart-connections
 .vscode
-dist
+dist/
 node_modules
 artifacts
 package-lock.json

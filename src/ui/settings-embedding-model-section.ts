@@ -1,4 +1,4 @@
-import { Setting } from 'obsidian';
+import type { SettingGroupItem } from 'obsidian';
 
 import {
   getDefaultEmbedModelKey,
@@ -6,11 +6,12 @@ import {
   shouldClearManagedSearchModel,
 } from '../domain/embed-provider-policy';
 import {
-  renderApiKeyField,
-  renderHostField,
-  renderModelDropdown,
-  renderSearchModelPicker,
+  apiKeyDefinition,
+  hostDefinition,
+  modelDefinitions,
+  searchModelDefinitions,
 } from './settings-model-picker';
+import type { CustomModelMode } from './settings-model-picker-shared';
 import type { SettingsConfigAccessor, SmartConnectionsPlugin } from './settings-types';
 
 function ensureModelKeyForAdapter(config: SettingsConfigAccessor, adapterName: string): void {
@@ -47,76 +48,82 @@ function triggerSearchModelReInit(plugin: SmartConnectionsPlugin): void {
   });
 }
 
-export function renderEmbeddingModelSection(
-  containerEl: HTMLElement,
+const PROVIDERS: Record<string, string> = {
+  transformers: 'Transformers (Local)',
+  openai: 'OpenAI',
+  ollama: 'Ollama (Local)',
+  gemini: 'Google Gemini',
+  lm_studio: 'LM Studio (Local)',
+  upstage: 'Upstage',
+  open_router: 'Open Router',
+};
+
+export function embeddingModelDefinitions(
   plugin: SmartConnectionsPlugin,
   config: SettingsConfigAccessor,
   confirmReembed: (message: string) => Promise<boolean>,
   triggerReEmbed: () => Promise<void>,
-  display: () => void,
-): void {
+  update: () => void,
+  customModelMode: CustomModelMode,
+): SettingGroupItem[] {
   const currentAdapter = config.getConfig<string>('smart_sources.embed_model.adapter', 'transformers');
 
-  new Setting(containerEl)
-    .setName('Provider')
-    .setDesc('Embedding model provider')
-    .addDropdown((dropdown) => {
-      const providers = [
-        { value: 'transformers', name: 'Transformers (Local)' },
-        { value: 'openai', name: 'OpenAI' },
-        { value: 'ollama', name: 'Ollama (Local)' },
-        { value: 'gemini', name: 'Google Gemini' },
-        { value: 'lm_studio', name: 'LM Studio (Local)' },
-        { value: 'upstage', name: 'Upstage' },
-        { value: 'open_router', name: 'Open Router' },
-      ];
-      for (const provider of providers) {
-        dropdown.addOption(provider.value, provider.name);
-      }
-      dropdown.setValue(currentAdapter);
-      dropdown.onChange((value) => {
-        void (async () => {
-          if (value !== currentAdapter) {
-            const confirmed = await confirmReembed(
-              'Changing the embedding provider requires re-embedding all notes. This may take a while. Continue?',
-            );
-            if (!confirmed) {
-              dropdown.setValue(currentAdapter);
-              return;
+  const provider: SettingGroupItem = {
+    name: 'Provider',
+    desc: 'Embedding model provider',
+    render: (setting) => {
+      setting.addDropdown((dropdown) => {
+        dropdown.addOptions(PROVIDERS);
+        dropdown.setValue(currentAdapter);
+        dropdown.onChange((value) => {
+          void (async () => {
+            if (value !== currentAdapter) {
+              const confirmed = await confirmReembed(
+                'Changing the embedding provider requires re-embedding all notes. This may take a while. Continue?',
+              );
+              if (!confirmed) {
+                dropdown.setValue(currentAdapter);
+                return;
+              }
             }
-          }
 
-          config.setConfig('smart_sources.embed_model.adapter', value);
-          ensureModelKeyForAdapter(config, value);
-          clearManagedSearchModelIfStale(config, value);
-          display();
-          await triggerReEmbed();
-        })();
+            config.setConfig('smart_sources.embed_model.adapter', value);
+            ensureModelKeyForAdapter(config, value);
+            clearManagedSearchModelIfStale(config, value);
+            update();
+            await triggerReEmbed();
+          })();
+        });
       });
-    });
+    },
+  };
 
-  renderModelDropdown({
-    containerEl,
-    adapterName: currentAdapter,
-    config,
-    confirmReembed,
-    triggerReEmbed,
-    display,
-  });
+  const rows: SettingGroupItem[] = [
+    provider,
+    ...modelDefinitions({
+      adapterName: currentAdapter,
+      config,
+      confirmReembed,
+      triggerReEmbed,
+      update,
+      customModelMode,
+    }),
+  ];
 
   if (['openai', 'gemini', 'upstage', 'open_router'].includes(currentAdapter)) {
-    renderApiKeyField(containerEl, currentAdapter, config);
+    rows.push(apiKeyDefinition(currentAdapter, config));
   }
-
   if (['ollama', 'lm_studio'].includes(currentAdapter)) {
     const defaultHost = currentAdapter === 'ollama' ? 'http://localhost:11434' : 'http://localhost:1234';
-    renderHostField(containerEl, currentAdapter, defaultHost, config);
+    rows.push(hostDefinition(currentAdapter, defaultHost, config));
   }
 
-  renderSearchModelPicker({
-    containerEl,
-    config,
-    onChanged: () => triggerSearchModelReInit(plugin),
-    display,
-  });
+  rows.push(
+    ...searchModelDefinitions({
+      config,
+      onChanged: () => triggerSearchModelReInit(plugin),
+      update,
+    }),
+  );
+  return rows;
 }

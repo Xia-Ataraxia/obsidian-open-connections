@@ -5,7 +5,6 @@
 
 import { EntityCollection } from './EntityCollection';
 import { EmbeddingSource } from './EmbeddingSource';
-import type { SourceData } from '../../types/entities';
 import type { VaultShim as Vault, MetadataCacheShim as MetadataCache, TFileShim as TFile } from '../../types/obsidian-shims';
 
 /**

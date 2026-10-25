@@ -161,7 +161,7 @@ describe.skipIf(!hasNodeSqlite)('NodeSqliteDataAdapter', () => {
     const adapter2 = new NodeSqliteDataAdapter(collection2, 'smart_blocks', 'test-ns-2');
     adapter2.initVaultContext({ getBasePath: () => tmpDir }, '.obsidian', 'test-plugin');
 
-    await adapter2.load();
+    adapter2.load();
 
     expect(collection2.create_or_update).toHaveBeenCalledWith(
       expect.objectContaining({ path: 'note.md' }),
@@ -170,7 +170,7 @@ describe.skipIf(!hasNodeSqlite)('NodeSqliteDataAdapter', () => {
 
   it('save() flushes collection.save_queue to disk', async () => {
     const entity = makeEntity('queued.md', [1.0, 0.0, 0.0, 0.0]);
-    (collection as any)._entities.push(entity);
+    (collection)._entities.push(entity);
 
     await adapter.save();
 
@@ -304,7 +304,7 @@ describe.skipIf(!hasNodeSqlite)('NodeSqliteDataAdapter', () => {
       makeEntity('guard-b.md', Array.from(vec)),
     ]);
 
-    await adapter.load();
+    adapter.load();
 
     expect((adapter as { _vectorIndex: unknown })._vectorIndex).toBeNull();
 

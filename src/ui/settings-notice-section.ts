@@ -1,45 +1,44 @@
-import { Setting } from 'obsidian';
+import type { SettingGroupItem } from 'obsidian';
 
 import type { SmartConnectionsPlugin } from './settings-types';
 
-export function renderNoticeSettings(
-  containerEl: HTMLElement,
+export function noticeDefinitions(
   plugin: SmartConnectionsPlugin,
-  display: () => void,
-): void {
+  update: () => void,
+): SettingGroupItem[] {
   const mutedNotices = plugin.notices?.listMuted?.() ?? [];
 
-  new Setting(containerEl)
-    .setName('Muted notices')
-    .setDesc('Muted notices remain hidden until manually unmuted.')
-    .addButton((button) => {
-      button
-        .setButtonText('Unmute all')
-        .setDisabled(mutedNotices.length === 0)
-        .onClick(async () => {
-          await plugin.notices?.unmuteAll?.();
-          display();
-        });
-    });
+  const summary: SettingGroupItem = {
+    name: 'Muted notices',
+    desc: mutedNotices.length === 0
+      ? 'Muted notices remain hidden until manually unmuted. No muted notices.'
+      : 'Muted notices remain hidden until manually unmuted.',
+    render: (setting) => {
+      setting.addButton((button) => {
+        button
+          .setButtonText('Unmute all')
+          .setDisabled(mutedNotices.length === 0)
+          .onClick(async () => {
+            await plugin.notices?.unmuteAll?.();
+            update();
+          });
+      });
+    },
+  };
 
-  if (mutedNotices.length === 0) {
-    containerEl.createEl('p', {
-      text: 'No muted notices.',
-      cls: 'setting-item-description osc-muted-notices-empty',
-    });
-    return;
-  }
-
-  const listContainer = containerEl.createDiv({ cls: 'osc-muted-notices-list' });
-  for (const noticeId of mutedNotices) {
-    new Setting(listContainer)
-      .setName(noticeId)
-      .setDesc('Muted')
-      .addButton((button) => {
+  const rows = mutedNotices.map((noticeId): SettingGroupItem => ({
+    name: noticeId,
+    desc: 'Muted',
+    searchable: false,
+    render: (setting) => {
+      setting.addButton((button) => {
         button.setButtonText('Unmute').onClick(async () => {
           await plugin.notices?.unmute?.(noticeId);
-          display();
+          update();
         });
       });
-  }
+    },
+  }));
+
+  return [summary, ...rows];
 }

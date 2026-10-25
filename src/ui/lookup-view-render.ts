@@ -28,31 +28,6 @@ function clearElement(element: HTMLElement): void {
   }
 }
 
-function createElement<K extends keyof HTMLElementTagNameMap>(
-  parent: HTMLElement,
-  tag: K,
-  opts: { cls?: string; text?: string; attr?: Record<string, string> } = {},
-): HTMLElementTagNameMap[K] {
-  const element = parent.ownerDocument.createElement(tag);
-  if (opts.cls) element.className = opts.cls;
-  if (opts.text) element.textContent = opts.text;
-  if (opts.attr) {
-    for (const [key, value] of Object.entries(opts.attr)) {
-      element.setAttribute(key, value);
-    }
-  }
-  parent.appendChild(element);
-  return element;
-}
-
-function createDiv(parent: HTMLElement, opts: { cls?: string; text?: string; attr?: Record<string, string> } = {}): HTMLDivElement {
-  return createElement(parent, 'div', opts);
-}
-
-function createSpan(parent: HTMLElement, opts: { cls?: string; text?: string; attr?: Record<string, string> } = {}): HTMLSpanElement {
-  return createElement(parent, 'span', opts);
-}
-
 export function handleLookupModelSwitched(view: LookupViewRenderContext): void {
   showLookupEmpty(
     view,
@@ -78,7 +53,7 @@ export function renderLookupResults(
   if (elapsedMs !== undefined) parts.push(`${elapsedMs}ms`);
   view.searchMetaEl.textContent = parts.join(' · ');
 
-  const list = createDiv(view.resultsContainer, { cls: 'osc-results', attr: { role: 'list' } });
+  const list = view.resultsContainer.createDiv({ cls: 'osc-results', attr: { role: 'list' } });
   for (let index = 0; index < results.length; index++) {
     const result = results[index];
     if (!result) continue;
@@ -88,7 +63,7 @@ export function renderLookupResults(
     const fullPath = key.split('#')[0] ?? '';
     const threshold = view.plugin.settings?.smart_view_filter?.highlight_threshold ?? 0.8;
     const tier = scoreTierFor(score, threshold);
-    const item = createDiv(list, {
+    const item = list.createDiv({
       cls: 'osc-lookup-result',
       attr: {
         role: 'listitem',
@@ -98,22 +73,22 @@ export function renderLookupResults(
       },
     });
 
-    createDiv(item, { cls: `osc-lookup-result-bar osc-lookup-result-bar--${tier}` });
-    const body = createDiv(item, { cls: 'osc-lookup-result-body' });
-    const header = createDiv(body, { cls: 'osc-lookup-result-header' });
-    createSpan(header, {
+    item.createDiv({ cls: `osc-lookup-result-bar osc-lookup-result-bar--${tier}` });
+    const body = item.createDiv({ cls: 'osc-lookup-result-body' });
+    const header = body.createDiv({ cls: 'osc-lookup-result-header' });
+    header.createSpan({
       text: formatLookupTitle(key),
       cls: `osc-lookup-result-title${tier === 'high' ? ' osc-lookup-result-title--strong' : ''}`,
     });
-    createSpan(header, {
+    header.createSpan({
       text: `${Math.round(score * 100)}%`,
       cls: `osc-lookup-result-score osc-lookup-result-score--${tier}`,
     });
 
     const path = formatLookupPath(key);
-    if (path) createDiv(body, { text: path, cls: 'osc-lookup-result-path' });
+    if (path) body.createDiv({ text: path, cls: 'osc-lookup-result-path' });
     const blockIndicator = formatLookupBlockIndicator(key);
-    if (blockIndicator) createDiv(body, { text: blockIndicator, cls: 'osc-lookup-result-block-indicator' });
+    if (blockIndicator) body.createDiv({ text: blockIndicator, cls: 'osc-lookup-result-block-indicator' });
 
     view.registerDomEvent(item, 'click', (event) => {
       void view.plugin.open_note(key, event as MouseEvent);
@@ -152,8 +127,8 @@ export function renderLookupResults(
 
 export function showLookupLoading(view: LookupViewRenderContext, message = 'Loading…'): void {
   clearElement(view.resultsContainer);
-  const wrapper = createDiv(view.resultsContainer, { cls: 'osc-state' });
-  createElement(wrapper, 'p', { text: message, cls: 'osc-state-text osc-lookup-loading-text' });
+  const wrapper = view.resultsContainer.createDiv({ cls: 'osc-state' });
+  wrapper.createEl('p', { text: message, cls: 'osc-state-text osc-lookup-loading-text' });
 }
 
 export function showLookupEmpty(
@@ -162,12 +137,12 @@ export function showLookupEmpty(
   clear = true,
 ): void {
   if (clear) clearElement(view.resultsContainer);
-  const wrapper = createDiv(view.resultsContainer, { cls: 'osc-state' });
-  const iconEl = createDiv(wrapper, { cls: 'osc-lookup-empty-icon' });
+  const wrapper = view.resultsContainer.createDiv({ cls: 'osc-state' });
+  const iconEl = wrapper.createDiv({ cls: 'osc-lookup-empty-icon' });
   setIcon(iconEl, 'search');
-  createElement(wrapper, 'p', { text: message, cls: 'osc-state-text' });
+  wrapper.createEl('p', { text: message, cls: 'osc-state-text' });
   const modKey = Platform?.isMacOS || Platform?.isIosApp ? 'Cmd' : 'Ctrl';
-  createElement(wrapper, 'p', {
+  wrapper.createEl('p', {
     text: `${modKey}+Shift+L to focus search`,
     cls: 'osc-state-hint',
   });
@@ -175,10 +150,10 @@ export function showLookupEmpty(
 
 export function showLookupError(view: LookupViewRenderContext, message = 'An error occurred'): void {
   clearElement(view.resultsContainer);
-  const wrapper = createDiv(view.resultsContainer, { cls: 'osc-state osc-state--error' });
-  const iconEl = createDiv(wrapper, { cls: 'osc-state-icon' });
+  const wrapper = view.resultsContainer.createDiv({ cls: 'osc-state osc-state--error' });
+  const iconEl = wrapper.createDiv({ cls: 'osc-state-icon' });
   setIcon(iconEl, 'alert-circle');
-  createElement(wrapper, 'p', { text: message, cls: 'osc-state-text' });
+  wrapper.createEl('p', { text: message, cls: 'osc-state-text' });
   new ButtonComponent(wrapper).setButtonText('Try again').onClick(() => {
     if (view.lastQuery) {
       view.retrySearch();

@@ -27,7 +27,7 @@ export interface TransformersResponseMessage {
 }
 
 export function create_bridge_secret(): string {
-  const cryptoApi = globalThis.crypto;
+  const cryptoApi = window.crypto;
   if (cryptoApi?.randomUUID) return cryptoApi.randomUUID();
   const bytes = new Uint8Array(16);
   cryptoApi?.getRandomValues?.(bytes);
