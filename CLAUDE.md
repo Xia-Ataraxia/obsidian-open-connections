@@ -100,9 +100,8 @@ scripts/
 └── check-e2e.sh               # Autoresearch harness: full pipeline
 
 test/
-├── *.test.ts                 # Vitest unit/integration tests
-├── mocks/                    # Test mocks
-└── setup.ts                  # Vitest setup
+└── *.test.ts                 # Vitest unit/integration tests
+
 ```
 
 ### Layer Boundary Rules
