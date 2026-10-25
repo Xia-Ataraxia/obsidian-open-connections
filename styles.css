@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════════ */
 
 /* ─── Custom Properties ─── */
-:root {
+body {
   --osc-spring: linear(0, 0.55 12%, 0.9 28%, 1.04 44%, 1.01 62%, 1);
   --osc-color-error: var(--text-error);
   --osc-color-success: var(--text-success);
