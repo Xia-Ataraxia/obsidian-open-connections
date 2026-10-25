@@ -70,6 +70,10 @@ function setStatusIcon(plugin: SmartConnectionsPlugin, icon: string): void {
   cachedIcon = icon;
 }
 
+function setStatusLabel(plugin: SmartConnectionsPlugin, label: string): void {
+  plugin.status_container?.setAttribute('aria-label', label);
+}
+
 type StatusTone = 'idle' | 'embedding' | 'paused' | 'error';
 
 function setStatusTone(plugin: SmartConnectionsPlugin, tone: StatusTone, percent = 0): void {
@@ -90,6 +94,7 @@ function setStatusTone(plugin: SmartConnectionsPlugin, tone: StatusTone, percent
  */
 export function refreshStatus(plugin: SmartConnectionsPlugin): void {
   if (!plugin.status_msg || !plugin.status_container) return;
+  plugin.status_container.removeAttribute('aria-label');
 
   if (!plugin.block_collection) {
     setStatusIcon(plugin, 'network');
@@ -114,9 +119,9 @@ export function refreshStatus(plugin: SmartConnectionsPlugin): void {
       `Embedding stopped. Click to retry
 Progress: ${vaultTag}
 Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}
-Indexed notes remain queryable${runtime.serving.error ? `
-Last error: ${runtime.serving.error}` : ''}`,
+Indexed notes remain queryable`,
     );
+    setStatusLabel(plugin, `Open Connections embedding stopped. ${vaultTag} embedded. Activate to retry.`);
     return;
   }
 
@@ -163,14 +168,13 @@ Current: ${currentNote}`,
       setStatusIcon(plugin, retryable ? 'rotate-cw' : 'alert-triangle');
       setStatusTone(plugin, 'error');
       plugin.status_msg.setText(retryable ? `OC: ${vaultTag} · Retry` : `OC: ${vaultTag}`);
-      const unavailableError = runtime.serving.kind === 'unavailable' ? runtime.serving.error : null;
       plugin.status_container.setAttribute(
         'title',
         `Embedding model unavailable
 Progress: ${vaultTag}
-${retryable ? 'Click to retry' : 'Click to open settings'}${unavailableError ? `
-Last error: ${unavailableError}` : ''}`,
+${retryable ? 'Click to retry' : 'Click to open settings'}`,
       );
+      setStatusLabel(plugin, `Open Connections embedding model unavailable. ${retryable ? 'Activate to retry.' : 'Activate to open settings.'}`);
       break;
     }
   }
