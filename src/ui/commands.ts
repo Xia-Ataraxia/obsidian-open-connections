@@ -8,7 +8,7 @@ import type { BlockCollection, SourceCollection } from '../domain/entities';
 import type { EmbeddingBlock } from '../domain/entities/EmbeddingBlock';
 import { ConnectionsView } from './ConnectionsView';
 import { LookupView } from './LookupView';
-import { getBlockConnections } from './block-connections';
+import { getBlockConnections, invalidateConnectionsCache } from './block-connections';
 
 interface SmartConnectionsPluginCommands extends Plugin {
   block_collection?: BlockCollection;
@@ -174,6 +174,10 @@ export function registerCommands(plugin: Plugin): void {
         if (p.block_collection) {
           await p.block_collection.data_adapter?.save();
         }
+        p.source_collection.recomputeEmbeddedCount();
+        p.block_collection?.recomputeEmbeddedCount();
+        invalidateConnectionsCache();
+        await p.reembedStaleEntities?.('Command: Clear embedding cache');
       }
     },
   });
