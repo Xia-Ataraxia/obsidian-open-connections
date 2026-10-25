@@ -747,10 +747,10 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   border-color: var(--text-muted);
 }
 
-.osc-lookup-chip--active {
-  color: var(--interactive-accent);
-  border-color: var(--interactive-accent);
-  background: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
+.osc-lookup-chip.osc-lookup-chip--active {
+  color: var(--text-on-accent);
+  border-color: transparent;
+  background: var(--interactive-accent);
 }
 
 /* ─── Meta Line ─── */
