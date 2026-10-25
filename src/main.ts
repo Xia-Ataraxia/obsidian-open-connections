@@ -127,6 +127,7 @@ export default class SmartConnectionsPlugin extends Plugin {
         {
           settings: this.settings as unknown as Record<string, unknown>,
           saveSettings: () => this.saveSettings(),
+          onMutedChange: () => this.app.workspace.trigger('open-connections:notices-changed'),
         },
         NOTICE_CATALOG,
         'Open Connections',

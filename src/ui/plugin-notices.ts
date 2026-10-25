@@ -9,6 +9,7 @@ export interface NoticeShowOptions {
 export interface PluginNoticesHost {
 	settings: Record<string, unknown>;
 	saveSettings(): Promise<void>;
+	onMutedChange?(): void;
 }
 
 const BUILTIN_TEMPLATES: Record<string, string> = {
@@ -64,6 +65,7 @@ export class PluginNotices {
 		const store = this.getMutedStore();
 		store[id] = true;
 		await this.plugin.saveSettings();
+		this.plugin.onMutedChange?.();
 	}
 
 	async unmute(id: string): Promise<void> {
@@ -71,6 +73,7 @@ export class PluginNotices {
 		if (store[id]) {
 			delete store[id];
 			await this.plugin.saveSettings();
+			this.plugin.onMutedChange?.();
 		}
 	}
 
@@ -79,6 +82,7 @@ export class PluginNotices {
 		if (Object.keys(store).length === 0) return;
 		this.getPluginNoticesSettings().muted = {};
 		await this.plugin.saveSettings();
+		this.plugin.onMutedChange?.();
 	}
 
 	isMuted(id: string): boolean {

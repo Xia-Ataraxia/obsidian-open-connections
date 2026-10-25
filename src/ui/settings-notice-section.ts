@@ -2,10 +2,7 @@ import type { SettingGroupItem } from 'obsidian';
 
 import type { SmartConnectionsPlugin } from './settings-types';
 
-export function noticeDefinitions(
-  plugin: SmartConnectionsPlugin,
-  update: () => void,
-): SettingGroupItem[] {
+export function noticeDefinitions(plugin: SmartConnectionsPlugin): SettingGroupItem[] {
   const mutedNotices = plugin.notices?.listMuted?.() ?? [];
 
   const summary: SettingGroupItem = {
@@ -20,7 +17,6 @@ export function noticeDefinitions(
           .setDisabled(mutedNotices.length === 0)
           .onClick(async () => {
             await plugin.notices?.unmuteAll?.();
-            update();
           });
       });
     },
@@ -34,7 +30,6 @@ export function noticeDefinitions(
       setting.addButton((button) => {
         button.setButtonText('Unmute').onClick(async () => {
           await plugin.notices?.unmute?.(noticeId);
-          update();
         });
       });
     },
