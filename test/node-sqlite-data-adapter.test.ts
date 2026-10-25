@@ -277,6 +277,22 @@ describe.skipIf(!hasNodeSqlite)('NodeSqliteDataAdapter', () => {
     }
   });
 
+  it('drops cleared embeddings from the in-memory vector index', async () => {
+    collection.embed_model_dims = 4;
+    await adapter.save_batch([
+      makeEntity('a.md', [1.0, 0.0, 0.0, 0.0]),
+      makeEntity('b.md', [0.9, 0.1, 0.0, 0.0]),
+    ]);
+    adapter.rebuildVectorIndex();
+
+    const cleared = makeEntity('a.md');
+    cleared._remove_all_embeddings = true;
+    await adapter.save_batch([cleared]);
+
+    const results = await adapter.query_nearest([1.0, 0.0, 0.0, 0.0], { limit: 5 });
+    expect(results.map((r) => r.entity_key)).toEqual(['b.md']);
+  });
+
   it('query_nearest respects min_score filter', async () => {
     collection.embed_model_dims = 4;
 
