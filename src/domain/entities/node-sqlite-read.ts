@@ -90,7 +90,7 @@ export function loadVectorIndexRows(
   db: DatabaseSync,
   modelKey: string,
   entityType: 'source' | 'block',
-  dims: number,
+  dims?: number,
 ): { entity_key: string; vec: Float32Array }[] {
   const rows = db.prepare(`
     SELECT em.entity_key, em.vec
@@ -104,6 +104,8 @@ export function loadVectorIndexRows(
   const result: { entity_key: string; vec: Float32Array }[] = [];
   for (const row of rows) {
     const vec = blobToF32(row.vec);
+    // Without a declared dimension (dynamic models), the first stored vector sets it.
+    dims ||= vec?.length;
     if (vec && vec.length === dims) {
       result.push({ entity_key: row.entity_key, vec });
     }

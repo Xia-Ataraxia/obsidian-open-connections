@@ -113,7 +113,7 @@ function upsertEmbeddingWith(
   }
 
   const embedHash = meta?.hash ?? entity.data.last_embed?.hash ?? entity.data.last_read?.hash ?? null;
-  const dims = meta?.dims ?? vec.length;
+  const dims = meta?.dims || vec.length;
   const updatedAt = meta?.updated_at ?? Date.now();
 
   upsertStmt.run(

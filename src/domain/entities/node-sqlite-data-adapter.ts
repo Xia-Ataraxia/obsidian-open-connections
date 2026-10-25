@@ -64,18 +64,24 @@ export class NodeSqliteDataAdapter<T extends EmbeddingEntity> {
   rebuildVectorIndex(): void {
     const modelKey = this.collection.embed_model_key;
     const dims = this.collection.embed_model_dims;
-    if (!modelKey || modelKey === 'None' || !dims) {
+    if (!modelKey || modelKey === 'None') {
       this._vectorIndex = null;
       return;
     }
-    const approximateBytes = this.collection.size * dims * Float32Array.BYTES_PER_ELEMENT;
+    // ponytail: unknown dims (Ollama/LM Studio) are budgeted at 1024 and inferred from stored vectors
+    const approximateBytes = this.collection.size * (dims || 1024) * Float32Array.BYTES_PER_ELEMENT;
     if (approximateBytes > NodeSqliteDataAdapter.MAX_VECTOR_INDEX_BYTES) {
       this._vectorIndex = null;
       return;
     }
     const rows = loadVectorIndexRows(this.requireDb(), modelKey, this.entity_type, dims);
+    const indexDims = rows[0]?.vec.length;
+    if (!indexDims) {
+      this._vectorIndex = null;
+      return;
+    }
     const index = new FlatVectorIndex();
-    index.load(rows, dims);
+    index.load(rows, indexDims);
     this._vectorIndex = index;
   }
 
