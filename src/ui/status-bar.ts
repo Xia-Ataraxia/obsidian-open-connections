@@ -9,10 +9,7 @@ import { getCurrentModelInfo } from './embed-orchestrator';
 import { ConnectionsView } from './ConnectionsView';
 import { runEmbeddingJob } from './run-embedding-job';
 
-let cachedVaultTag = '';
 let cachedIcon = '';
-let lastComputeMs = 0;
-const CACHE_TTL_MS = 2000;
 
 /**
  * Create the status bar item, wire up click handler, and render initial state.
@@ -52,16 +49,10 @@ export function setupStatusBar(plugin: SmartConnectionsPlugin): void {
 }
 
 function getVaultTag(plugin: SmartConnectionsPlugin): string {
-  const now = Date.now();
-  if (now - lastComputeMs < CACHE_TTL_MS && cachedVaultTag) return cachedVaultTag;
-
   const totalBlocks = plugin.block_collection?.effectiveTotal ?? 0;
   const embeddedBlocks = plugin.block_collection?.embeddedCount ?? 0;
   const vaultPercent = totalBlocks > 0 ? Math.round((embeddedBlocks / totalBlocks) * 100) : 0;
-
-  cachedVaultTag = `${embeddedBlocks}/${totalBlocks} (${vaultPercent}%)`;
-  lastComputeMs = now;
-  return cachedVaultTag;
+  return `${embeddedBlocks}/${totalBlocks} (${vaultPercent}%)`;
 }
 
 function setStatusIcon(plugin: SmartConnectionsPlugin, icon: string): void {
