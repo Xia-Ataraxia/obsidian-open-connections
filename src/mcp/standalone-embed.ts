@@ -3,7 +3,7 @@
  * @description Lightweight embedding adapter for standalone MCP mode.
  *
  * Reads adapter type and credentials from data.json settings, then calls the
- * provider's embedding endpoint using globalThis.fetch (Node 18+).
+ * provider's embedding endpoint using fetch (Node 18+).
  * Only API-based adapters are supported -- transformers is not available
  * outside the Obsidian browser environment.
  */
@@ -145,7 +145,7 @@ async function openaiCompatibleEmbed(
 }
 
 async function fetchJson(url: string, init: RequestInit): Promise<unknown> {
-  const resp = await globalThis.fetch(url, init);
+  const resp = await fetch(url, init);
   if (!resp.ok) {
     const text = await resp.text().catch(() => '');
     throw new Error(`HTTP ${resp.status} from ${url}: ${text.slice(0, 200)}`);

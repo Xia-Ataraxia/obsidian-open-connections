@@ -33,14 +33,11 @@
   "homepage": "https://github.com/Xia-Ataraxia/obsidian-open-connections#readme",
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@huggingface/transformers": "^4.3.1",
     "@types/node": "^26.6.5",
-    "@xenova/transformers": "latest",
-    "builtin-modules": "5.4.0",
+    "@vitest/eslint-plugin": "^1.6.28",
     "esbuild": "^0.28.2",
     "eslint": "^10.13.0",
     "eslint-plugin-obsidianmd": "^0.4.2",
-    "eslint-plugin-vitest": "^0.5.4",
     "globals": "17.13.0",
     "jiti": "2.7.0",
     "obsidian": "^1.14.4",
@@ -52,5 +49,8 @@
   },
   "dependencies": {
     "js-tiktoken": "^1.0.21"
+  },
+  "overrides": {
+    "moment": "2.31.0"
   }
 }

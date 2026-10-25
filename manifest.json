@@ -4,7 +4,7 @@
   "author": "beomsu koh",
   "description": "Chat with your notes & see links to related content with Local or Remote models.",
   "minAppVersion": "1.13.0",
-  "authorUrl": "https://github.com/beomsuKoh/obsidian-smart-connections",
+  "authorUrl": "https://github.com/GoBeromsu",
   "isDesktopOnly": true,
   "version": "3.9.50"
 }
