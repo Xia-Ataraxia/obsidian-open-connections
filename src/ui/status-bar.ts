@@ -7,6 +7,7 @@ import { setIcon } from 'obsidian';
 import type SmartConnectionsPlugin from '../main';
 import { getCurrentModelInfo } from './embed-orchestrator';
 import { ConnectionsView } from './ConnectionsView';
+import { runEmbeddingJob } from './run-embedding-job';
 
 let cachedVaultTag = '';
 let cachedIcon = '';
@@ -69,13 +70,17 @@ function setStatusIcon(plugin: SmartConnectionsPlugin, icon: string): void {
   cachedIcon = icon;
 }
 
-type StatusTone = 'idle' | 'embedding' | 'error';
+function setStatusLabel(plugin: SmartConnectionsPlugin, label: string): void {
+  plugin.status_container?.setAttribute('aria-label', label);
+}
+
+type StatusTone = 'idle' | 'embedding' | 'paused' | 'error';
 
 function setStatusTone(plugin: SmartConnectionsPlugin, tone: StatusTone, percent = 0): void {
   const container = plugin.status_container;
   if (!container) return;
   const changed = !container.hasClass(`is-${tone}`);
-  for (const name of ['idle', 'embedding', 'error']) container.toggleClass(`is-${name}`, name === tone);
+  for (const name of ['idle', 'embedding', 'paused', 'error']) container.toggleClass(`is-${name}`, name === tone);
   if (changed) {
     container.removeClass('is-changing');
     void container.offsetWidth;
@@ -89,6 +94,7 @@ function setStatusTone(plugin: SmartConnectionsPlugin, tone: StatusTone, percent
  */
 export function refreshStatus(plugin: SmartConnectionsPlugin): void {
   if (!plugin.status_msg || !plugin.status_container) return;
+  plugin.status_container.removeAttribute('aria-label');
 
   if (!plugin.block_collection) {
     setStatusIcon(plugin, 'network');
@@ -105,17 +111,17 @@ export function refreshStatus(plugin: SmartConnectionsPlugin): void {
   const runtime = plugin.getEmbedRuntimeState();
 
   if (runtime.serving.kind === 'degraded') {
-    setStatusIcon(plugin, 'alert-triangle');
+    setStatusIcon(plugin, 'rotate-cw');
     setStatusTone(plugin, 'error');
-    plugin.status_msg.setText(`OC: ${vaultTag}`);
+    plugin.status_msg.setText(`OC: ${vaultTag} · Retry`);
     plugin.status_container.setAttribute(
       'title',
-      `Embedding backlog degraded
+      `Indexing stopped after a crash. Click to retry.
 Progress: ${vaultTag}
 Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}
-Indexed notes remain queryable${runtime.serving.error ? `
-Last error: ${runtime.serving.error}` : ''}`,
+Indexed notes remain queryable`,
     );
+    setStatusLabel(plugin, `Open Connections embedding stopped. ${vaultTag} embedded. Activate to retry.`);
     return;
   }
 
@@ -132,6 +138,13 @@ Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}`,
       );
       break;
     case 'embedding': {
+      if (ctx?.phase === 'halted') {
+        setStatusIcon(plugin, 'pause');
+        setStatusTone(plugin, 'paused');
+        plugin.status_msg.setText(`OC: paused ${vaultTag}`);
+        plugin.status_container.setAttribute('title', `Embedding paused\nProgress: ${vaultTag}\nClick to resume`);
+        break;
+      }
       setStatusIcon(plugin, 'loader');
       const runCurrent = ctx?.current ?? 0;
       const runTotal = ctx?.total ?? 0;
@@ -151,17 +164,17 @@ Current: ${currentNote}`,
       break;
     }
     case 'error': {
-      setStatusIcon(plugin, 'alert-triangle');
+      const retryable = typeof plugin.embed_adapter?.reset_failure === 'function';
+      setStatusIcon(plugin, retryable ? 'rotate-cw' : 'alert-triangle');
       setStatusTone(plugin, 'error');
-      plugin.status_msg.setText(`OC: ${vaultTag}`);
-      const unavailableError = runtime.serving.kind === 'unavailable' ? runtime.serving.error : null;
+      plugin.status_msg.setText(retryable ? `OC: ${vaultTag} · Retry` : `OC: ${vaultTag}`);
       plugin.status_container.setAttribute(
         'title',
-        `Embedding model unavailable
+        `Indexing stopped: the embedding model is unavailable.
 Progress: ${vaultTag}
-Click to open settings${unavailableError ? `
-Last error: ${unavailableError}` : ''}`,
+${retryable ? 'Click to retry.' : 'Click to open settings.'}`,
       );
+      setStatusLabel(plugin, `Open Connections embedding model unavailable. ${retryable ? 'Activate to retry.' : 'Activate to open settings.'}`);
       break;
     }
   }
@@ -172,6 +185,14 @@ Last error: ${unavailableError}` : ''}`,
  */
 export function handleStatusBarClick(plugin: SmartConnectionsPlugin): void {
   const runtime = plugin.getEmbedRuntimeState();
+  const adapter = plugin.embed_adapter;
+  const stopped = runtime.serving.kind === 'degraded' || runtime.serving.kind === 'unavailable';
+  if (stopped && typeof adapter?.reset_failure === 'function') {
+    adapter.reset_failure();
+    plugin.queueUnembeddedEntities();
+    void runEmbeddingJob(plugin, 'Manual retry');
+    return;
+  }
   if (runtime.serving.kind === 'unavailable') {
     (plugin.app as unknown as { setting?: { open?(): void } }).setting?.open?.();
     return;

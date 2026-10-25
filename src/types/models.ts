@@ -131,6 +131,9 @@ export interface EmbedModelAdapter {
   /** Model configuration settings */
   settings: Record<string, unknown>;
 
+  /** Clears a stopped state (e.g. a crashed worker) so the next call may start again. */
+  reset_failure?(): void;
+
   /**
    * Embed a batch of inputs
    */

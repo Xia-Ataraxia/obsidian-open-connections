@@ -135,6 +135,10 @@ export class TransformersEmbedAdapter {
     return this.models[model_key || this.model_key];
   }
 
+  reset_failure(): void {
+    this.crash_gate.reset();
+  }
+
   unload(): Promise<void> {
     this.dispose_worker();
     return Promise.resolve();
