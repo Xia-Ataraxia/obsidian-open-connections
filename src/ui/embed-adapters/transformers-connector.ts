@@ -32,13 +32,43 @@ async function is_webgpu_available() {
   }
 }
 
+// The sandboxed iframe has no Cache API / IndexedDB, so model files are persisted by the parent.
+const pending_cache = new Map();
+let cache_seq = 0;
+function cache_call(type, key, body) {
+  return new Promise((resolve) => {
+    const cache_id = cache_seq++;
+    pending_cache.set(cache_id, resolve);
+    window.parent.postMessage({ iframe_id: IFRAME_ID, channel_token: CHANNEL_TOKEN, type, cache_id, key, body }, '*');
+  });
+}
+window.addEventListener('message', (event) => {
+  const d = event.data;
+  if (event.source !== window.parent || !d || d.iframe_id !== IFRAME_ID || d.channel_token !== CHANNEL_TOKEN) return;
+  const resolve = pending_cache.get(d.cache_id);
+  if (!resolve) return;
+  pending_cache.delete(d.cache_id);
+  resolve(d);
+});
+const parent_cache = {
+  async match(key) {
+    const r = await cache_call('cache_get', String(key));
+    return r.hit ? new Response(r.body) : undefined;
+  },
+  async put(key, response) {
+    await cache_call('cache_put', String(key), await response.arrayBuffer());
+  },
+};
+
 async function load_transformers_with_fallback(model_key, use_gpu) {
   const { pipeline: createPipeline, env, AutoTokenizer } = await import(
     'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.0'
   );
 
   env.allowLocalModels = false;
-  if (typeof env.useBrowserCache !== 'undefined') env.useBrowserCache = true;
+  env.useBrowserCache = false;
+  env.useCustomCache = true;
+  env.customCache = parent_cache;
 
   const configs = use_gpu ? [
     { device: 'webgpu', dtype: 'fp32', quantized: false },
@@ -82,7 +112,7 @@ async function load_transformers_with_fallback(model_key, use_gpu) {
   if (!pipeline) {
     const last_message = (last_error && last_error.message) ? String(last_error.message) : String(last_error || '');
     if (last_message.toLowerCase().includes('timed out') || last_message.toLowerCase().includes('timeout')) throw new Error('[download:timeout] Model download timed out. Try a smaller model or increase timeout in settings.');
-    if (last_message.toLowerCase().includes('quota') || last_message.toLowerCase().includes('storage')) throw new Error('[download:quota] Browser storage quota exceeded. Clear browser cache and retry.');
+    if (last_message.toLowerCase().includes('quota')) throw new Error('[download:quota] Browser storage quota exceeded. Clear browser cache and retry.');
     if (last_message.includes('Failed to fetch') || last_message.toLowerCase().includes('network')) throw new Error('[download:network] Failed to download model files. Check your network connection and retry.');
     if (last_message.includes('404') || last_message.toLowerCase().includes('not found')) throw new Error('[download:model_not_found] Model not found. Try switching to BGE-micro-v2.');
     throw last_error || new Error('[download:unknown] Failed to initialize transformers pipeline');

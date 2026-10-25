@@ -1,6 +1,7 @@
 import type SmartConnectionsPlugin from '../main';
 import { embedAdapterRegistry } from '../domain/embed-model';
 import { errorMessage } from '../utils';
+import { createVaultModelCache, setModelCacheStore } from './embed-adapters/transformers-cache';
 import './register-embed-adapters';
 
 function shouldDeferAdapterLoad(adapterType: string): boolean {
@@ -8,6 +9,7 @@ function shouldDeferAdapterLoad(adapterType: string): boolean {
 }
 
 export async function initEmbedModel(plugin: SmartConnectionsPlugin): Promise<void> {
+  setModelCacheStore(createVaultModelCache(plugin.app, plugin.manifest.id));
   try {
     const embedSettings = plugin.settings.smart_sources.embed_model;
     const adapterType = embedSettings.adapter;
