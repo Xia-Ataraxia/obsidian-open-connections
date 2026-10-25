@@ -11,7 +11,9 @@ import {
   build_transformers_request,
   create_bridge_secret,
   parse_transformers_response,
+  type TransformersResponseMessage,
 } from './transformers-bridge-contract';
+import { getModelCacheStore } from './transformers-cache';
 import { TRANSFORMERS_EMBED_MODELS } from './transformers-models';
 
 type PendingRequest = {
@@ -136,6 +138,10 @@ export class TransformersEmbedAdapter {
       console.debug(String(msg.message ?? ''));
       return;
     }
+    if (msg.type === 'cache_get' || msg.type === 'cache_put') {
+      void this.handle_cache_message(msg);
+      return;
+    }
     if (msg.type === 'fatal') {
       const message = msg.error ? String(msg.error) : 'Unknown transformers iframe fatal error';
       if (typeof msg.id === 'number') {
@@ -154,6 +160,29 @@ export class TransformersEmbedAdapter {
     if (msg.error) pending.reject(new Error(msg.error));
     else pending.resolve(msg.result);
   };
+
+  private async handle_cache_message(msg: TransformersResponseMessage): Promise<void> {
+    const store = getModelCacheStore();
+    const reply: Record<string, unknown> = {
+      iframe_id: this.iframe_id,
+      channel_token: this.channel_token,
+      cache_id: msg.cache_id,
+      hit: false,
+    };
+    try {
+      if (store && typeof msg.key === 'string') {
+        if (msg.type === 'cache_get') {
+          const body = await store.get(msg.key);
+          if (body) Object.assign(reply, { hit: true, body });
+        } else if (msg.body instanceof ArrayBuffer) {
+          await store.put(msg.key, msg.body);
+        }
+      }
+    } catch (error) {
+      console.debug('[Transformers Adapter] model cache failure', error);
+    }
+    this.iframe?.contentWindow?.postMessage(reply, '*');
+  }
 
   private send_message(method: string, params?: unknown): Promise<unknown> {
     return new Promise((resolve, reject) => {
