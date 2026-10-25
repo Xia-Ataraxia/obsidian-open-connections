@@ -982,8 +982,33 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   opacity: 1;
 }
 
+.open-connections-status.is-embedding .open-connections-status-progress {
+  animation: osc-status-pulse 2.4s ease-in-out infinite;
+}
+
+.open-connections-status.is-paused {
+  color: var(--text-warning);
+}
+
+.open-connections-status.is-paused .open-connections-status-progress {
+  width: 48px;
+  opacity: 0.6;
+}
+
 .open-connections-status.is-error {
   color: var(--text-error);
+}
+
+.open-connections-status.is-error .open-connections-status-icon .svg-icon {
+  transition: transform 0.4s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.open-connections-status.is-error:hover .open-connections-status-icon .svg-icon {
+  transform: rotate(-180deg);
+}
+
+@keyframes osc-status-pulse {
+  50% { opacity: 0.65; }
 }
 
 .open-connections-status.is-changing {
@@ -1006,6 +1031,14 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
 
   .open-connections-status.is-changing {
     animation-name: osc-fade-only;
+  }
+
+  .open-connections-status.is-embedding .open-connections-status-progress {
+    animation-duration: 6s;
+  }
+
+  .open-connections-status.is-error:hover .open-connections-status-icon .svg-icon {
+    transform: none;
   }
 
   .open-connections-status-progress,
