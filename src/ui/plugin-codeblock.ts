@@ -15,7 +15,7 @@ function parseCodeblockConfig(source: string): Record<string, string> {
 }
 
 export function registerSmartConnectionsCodeBlock(plugin: SmartConnectionsPlugin): void {
-  plugin.registerMarkdownCodeBlockProcessor('smart-connections', async (source, el) => {
+  plugin.registerMarkdownCodeBlockProcessor('smart-connections', async (source, el, ctx) => {
     if (!plugin.block_collection) {
       el.createEl('p', { text: 'Open connections is loading…', cls: 'osc-state-text' });
       return;
@@ -23,11 +23,8 @@ export function registerSmartConnectionsCodeBlock(plugin: SmartConnectionsPlugin
 
     const config = parseCodeblockConfig(source);
     const limit = parseInt(config.limit || '5', 10);
-    const activeFile = plugin.app.workspace.getActiveFile();
-    if (!activeFile) return;
-
     const fileBlocks = plugin.block_collection.all.filter(
-      (block) => block.source_key === activeFile.path && block.has_embed(),
+      (block) => block.source_key === ctx.sourcePath && block.has_embed(),
     );
 
     if (fileBlocks.length === 0) {
