@@ -39,7 +39,7 @@ export async function getBlockConnections(
   }
 
   let timedOut = false;
-  let timeoutId: number | undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const mainPromise = getSourceConnections(blockCollection, filePath, limit);
 
