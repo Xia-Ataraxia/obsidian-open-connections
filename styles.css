@@ -921,10 +921,13 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
     animation: osc-pulse 2.4s ease-in-out infinite;
   }
 
-  .plugin-icon-btn:active,
+  .plugin-icon-btn:active {
+    transform: scale(0.96);
+  }
+
   .osc-result-item:active,
   .osc-lookup-result:active {
-    transform: none;
+    transform: scale(0.995);
   }
 
   .osc-embed-progress--indeterminate .setting-progress-bar-inner {
