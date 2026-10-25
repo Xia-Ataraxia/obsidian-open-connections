@@ -1038,7 +1038,9 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   }
 
   .open-connections-status.is-error:hover .open-connections-status-icon .svg-icon {
-    transform: none;
+    transform: scale(1.12);
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
   }
 
   .open-connections-status-progress::-webkit-progress-value {

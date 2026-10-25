@@ -116,7 +116,7 @@ export function refreshStatus(plugin: SmartConnectionsPlugin): void {
     plugin.status_msg.setText(`OC: ${vaultTag} · Retry`);
     plugin.status_container.setAttribute(
       'title',
-      `Embedding stopped. Click to retry
+      `Indexing stopped after a crash. Click to retry.
 Progress: ${vaultTag}
 Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}
 Indexed notes remain queryable`,
@@ -170,9 +170,9 @@ Current: ${currentNote}`,
       plugin.status_msg.setText(retryable ? `OC: ${vaultTag} · Retry` : `OC: ${vaultTag}`);
       plugin.status_container.setAttribute(
         'title',
-        `Embedding model unavailable
+        `Indexing stopped: the embedding model is unavailable.
 Progress: ${vaultTag}
-${retryable ? 'Click to retry' : 'Click to open settings'}`,
+${retryable ? 'Click to retry.' : 'Click to open settings.'}`,
       );
       setStatusLabel(plugin, `Open Connections embedding model unavailable. ${retryable ? 'Activate to retry.' : 'Activate to open settings.'}`);
       break;
