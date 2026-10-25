@@ -1,6 +1,6 @@
 import type { App } from 'obsidian';
 
-/** Persists model files for the sandboxed iframe, which has no Cache API or IndexedDB access. */
+/** Persists model files for the embedding worker, whose blob origin has no Cache API or IndexedDB access. */
 export interface ModelCacheStore {
   get(key: string): Promise<ArrayBuffer | null>;
   put(key: string, body: ArrayBuffer): Promise<void>;
