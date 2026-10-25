@@ -7,7 +7,7 @@
 import type { SearchFilter } from '../types/entities';
 
 // Shared with the standalone MCP (Node, no `window`).
-const timerHost = (): typeof window => (typeof window !== 'undefined' ? window : window);
+const timerHost = (): typeof globalThis => (typeof window !== 'undefined' ? window : globalThis);
 
 export type VectorMatch = { entity_key: string; score: number };
 

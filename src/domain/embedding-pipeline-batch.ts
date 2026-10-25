@@ -8,7 +8,7 @@ import {
 } from './embedding-pipeline-results';
 
 // Shared with the standalone MCP (Node, no `window`).
-const timerHost = (): typeof window => (typeof window !== 'undefined' ? window : window);
+const timerHost = (): typeof globalThis => (typeof window !== 'undefined' ? window : globalThis);
 
 export function filter_by_hash(
   batch: EmbeddingEntity[],
