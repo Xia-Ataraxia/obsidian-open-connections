@@ -27,14 +27,25 @@ export function setupStatusBar(plugin: SmartConnectionsPlugin): void {
   }
 
   plugin.status_elm = plugin.addStatusBarItem();
-  plugin.status_container = plugin.status_elm.createEl('a', {
+  plugin.status_elm.addClass('mod-clickable');
+  plugin.status_container = plugin.status_elm.createDiv({
     cls: 'open-connections-status',
+    attr: { role: 'button', tabindex: '0' },
   });
-  setIcon(plugin.status_container, 'network');
+  cachedIcon = '';
+  plugin.status_icon = plugin.status_container.createSpan('open-connections-status-icon');
+  setStatusIcon(plugin, 'network');
 
   plugin.status_msg = plugin.status_container.createSpan('open-connections-status-msg');
+  plugin.status_progress = plugin.status_container.createEl('progress', {
+    cls: 'open-connections-status-progress',
+    attr: { max: '100', value: '0' },
+  });
 
   plugin.registerDomEvent(plugin.status_container, 'click', () => handleStatusBarClick(plugin));
+  plugin.registerDomEvent(plugin.status_container, 'keydown', (evt) => {
+    if (evt.key === 'Enter' || evt.key === ' ') handleStatusBarClick(plugin);
+  });
 
   refreshStatus(plugin);
 }
@@ -53,9 +64,24 @@ function getVaultTag(plugin: SmartConnectionsPlugin): string {
 }
 
 function setStatusIcon(plugin: SmartConnectionsPlugin, icon: string): void {
-  if (!plugin.status_container || icon === cachedIcon) return;
-  setIcon(plugin.status_container, icon);
+  if (!plugin.status_icon || icon === cachedIcon) return;
+  setIcon(plugin.status_icon, icon);
   cachedIcon = icon;
+}
+
+type StatusTone = 'idle' | 'embedding' | 'error';
+
+function setStatusTone(plugin: SmartConnectionsPlugin, tone: StatusTone, percent = 0): void {
+  const container = plugin.status_container;
+  if (!container) return;
+  const changed = !container.hasClass(`is-${tone}`);
+  for (const name of ['idle', 'embedding', 'error']) container.toggleClass(`is-${name}`, name === tone);
+  if (changed) {
+    container.removeClass('is-changing');
+    void container.offsetWidth;
+    container.addClass('is-changing');
+  }
+  plugin.status_progress?.setAttribute('value', String(percent));
 }
 
 /**
@@ -66,7 +92,8 @@ export function refreshStatus(plugin: SmartConnectionsPlugin): void {
 
   if (!plugin.block_collection) {
     setStatusIcon(plugin, 'network');
-    plugin.status_msg.setText('Oc: loading…');
+    setStatusTone(plugin, 'idle');
+    plugin.status_msg.setText('Loading…');
     plugin.status_container.setAttribute('title', 'Open connections is loading…');
     return;
   }
@@ -79,6 +106,7 @@ export function refreshStatus(plugin: SmartConnectionsPlugin): void {
 
   if (runtime.serving.kind === 'degraded') {
     setStatusIcon(plugin, 'alert-triangle');
+    setStatusTone(plugin, 'error');
     plugin.status_msg.setText(`OC: ${vaultTag}`);
     plugin.status_container.setAttribute(
       'title',
@@ -94,6 +122,7 @@ Last error: ${runtime.serving.error}` : ''}`,
   switch (plugin.status_state) {
     case 'idle':
       setStatusIcon(plugin, 'network');
+      setStatusTone(plugin, 'idle');
       plugin.status_msg.setText(`OC: ${vaultTag}`);
       plugin.status_container.setAttribute(
         'title',
@@ -107,6 +136,7 @@ Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}`,
       const runCurrent = ctx?.current ?? 0;
       const runTotal = ctx?.total ?? 0;
       const runPercent = runTotal > 0 ? Math.round((runCurrent / runTotal) * 100) : 0;
+      setStatusTone(plugin, 'embedding', runPercent);
       plugin.status_msg.setText(`OC: ${runCurrent}/${runTotal} (${runPercent}%)`);
       const currentNote = ctx?.currentSourcePath ?? '-';
       plugin.status_container.setAttribute(
@@ -122,6 +152,7 @@ Current: ${currentNote}`,
     }
     case 'error': {
       setStatusIcon(plugin, 'alert-triangle');
+      setStatusTone(plugin, 'error');
       plugin.status_msg.setText(`OC: ${vaultTag}`);
       const unavailableError = runtime.serving.kind === 'unavailable' ? runtime.serving.error : null;
       plugin.status_container.setAttribute(
