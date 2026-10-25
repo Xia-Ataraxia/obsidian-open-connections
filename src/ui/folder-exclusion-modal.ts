@@ -1,4 +1,4 @@
-import { FuzzySuggestModal, type App } from 'obsidian';
+import { FuzzySuggestModal, type App, type FuzzyMatch } from 'obsidian';
 
 export class FolderExclusionPickerModal extends FuzzySuggestModal<string> {
   private resolvePromise!: (value: string | null) => void;
@@ -33,6 +33,17 @@ export class FolderExclusionPickerModal extends FuzzySuggestModal<string> {
 
   getItemText(folderPath: string): string {
     return folderPath;
+  }
+
+  /**
+   * Obsidian core closes the modal *before* it delivers the chosen item
+   * (SuggestModal.selectSuggestion → close() → onChooseSuggestion()). Without
+   * this override, onClose() would resolve the promise with null first and the
+   * real selection in onChooseItem() would land on an already-settled promise.
+   */
+  selectSuggestion(value: FuzzyMatch<string>, evt: MouseEvent | KeyboardEvent): void {
+    this.resolved = true;
+    super.selectSuggestion(value, evt);
   }
 
   onChooseItem(folderPath: string): void {
