@@ -3,7 +3,7 @@ import type SmartConnectionsPlugin from '../main';
 import type { ConnectionResult } from '../types/entities';
 import type { LookupFilter } from './lookup-view-format';
 import { getLookupEntityCount, searchCollections } from './lookup-view-search';
-import { renderLookupResults, showLookupEmpty, showLookupError, showLookupLoading } from './lookup-view-render';
+import { registerLookupResultEvents, renderLookupResults, showLookupEmpty, showLookupError, showLookupLoading } from './lookup-view-render';
 
 export const LOOKUP_VIEW_TYPE = 'open-connections-lookup';
 
@@ -95,6 +95,7 @@ export class LookupView extends ItemView {
 
     this.searchMetaEl = this.container.createDiv({ cls: 'osc-lookup-meta' });
     this.resultsContainer = this.container.createDiv({ cls: 'osc-lookup-results' });
+    registerLookupResultEvents(this);
 
     this.registerDomEvent(this.searchInput, 'input', () => {
       this.updateClearButton();
