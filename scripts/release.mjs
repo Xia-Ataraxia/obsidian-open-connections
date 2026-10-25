@@ -41,8 +41,10 @@ if (fs.existsSync('manifest.json')) {
   const normalized = `${JSON.stringify(JSON.parse(raw), null, '\t')}\n`;
   if (raw !== normalized) {
     fs.writeFileSync('manifest.json', normalized);
-    run('git', ['add', 'manifest.json']);
-    run('git', ['commit', '-m', 'chore: normalize manifest.json formatting']);
+    if (spawnSync('git', ['diff', '--quiet', 'manifest.json']).status !== 0) {
+      run('git', ['add', 'manifest.json']);
+      run('git', ['commit', '-m', 'chore: normalize manifest.json formatting']);
+    }
   }
 }
 
