@@ -8,7 +8,7 @@ export function getCurrentModelInfo(
     ?? plugin.settings?.smart_sources?.embed_model?.adapter
     ?? 'unknown';
   const modelKey = plugin.embed_adapter?.model_key
-    ?? (plugin.getEmbedAdapterSettings(plugin.settings?.smart_sources?.embed_model as Record<string, unknown>)?.model_key as string | undefined)
+    ?? (plugin.getEmbedAdapterSettings(plugin.settings?.smart_sources?.embed_model)?.model_key as string | undefined)
     ?? 'unknown';
   const dims = plugin.embed_adapter?.dims ?? null;
   return { adapter, modelKey, dims };

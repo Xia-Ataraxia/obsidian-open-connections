@@ -10,7 +10,7 @@ export function build_transformers_batch_results(
   const normalized = inputs.map((item, index) => {
     const embed_input = 'embed_input' in item ? item.embed_input : item._embed_input;
     return {
-      item: { ...item, embed_input } as EmbedInput,
+      item: { ...item, embed_input },
       original_index: index,
     };
   });
@@ -19,7 +19,7 @@ export function build_transformers_batch_results(
     ...entry.item,
     vec: [],
     tokens: 0,
-  } as EmbedResult));
+  }));
   const valid = normalized.filter((entry) => (entry.item.embed_input?.length ?? 0) > 0);
   return {
     results,

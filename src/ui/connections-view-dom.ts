@@ -10,5 +10,5 @@ export function registerConnectionsDomEvent(
     view.registerDomEvent(element, type as never, callback as never);
     return;
   }
-  element.addEventListener(type, callback as EventListener);
+  element.addEventListener(type, callback);
 }

@@ -39,19 +39,19 @@ export async function getBlockConnections(
   }
 
   let timedOut = false;
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let timeoutId: number | undefined;
 
   const mainPromise = getSourceConnections(blockCollection, filePath, limit);
 
   const timeoutPromise = new Promise<ConnectionResult[]>(resolve => {
-    timeoutId = setTimeout(() => {
+    timeoutId = window.setTimeout(() => {
       timedOut = true;
       resolve([]);
     }, EMBED_TIMEOUT_MS);
   });
 
   const results = await Promise.race([mainPromise, timeoutPromise]);
-  if (timeoutId !== undefined) clearTimeout(timeoutId);
+  if (timeoutId !== undefined) window.clearTimeout(timeoutId);
 
   if (timedOut) {
     mainPromise.then(abandoned => {

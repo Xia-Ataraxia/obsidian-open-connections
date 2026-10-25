@@ -55,7 +55,7 @@ export function renderApiKeyField(
   const currentApiKey = config.getConfig(`smart_sources.embed_model.${adapterName}.api_key`, '');
   const registration = embedAdapterRegistry.get(adapterName);
   const signupUrl = registration?.signupUrl;
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let debounceTimer: number | null = null;
 
   const setting = new Setting(containerEl)
     .setName('API key')
@@ -65,8 +65,8 @@ export function renderApiKeyField(
       text.setPlaceholder('Enter API key');
       text.setValue(currentApiKey);
       text.onChange((value) => {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
+        if (debounceTimer) window.clearTimeout(debounceTimer);
+        debounceTimer = window.setTimeout(() => {
           const trimmed = value.trim();
           if (trimmed !== currentApiKey) {
             config.setConfig(`smart_sources.embed_model.${adapterName}.api_key`, trimmed);
@@ -78,7 +78,7 @@ export function renderApiKeyField(
       button.setButtonText('Validate');
       button.onClick(async () => {
         if (debounceTimer) {
-          clearTimeout(debounceTimer);
+          window.clearTimeout(debounceTimer);
           debounceTimer = null;
           const inputEl = setting.controlEl.querySelector<HTMLInputElement>('input[type="password"]');
           if (inputEl) {
@@ -97,7 +97,7 @@ export function renderApiKeyField(
       });
     });
 
-  const validationStatus = setting.descEl.createEl('span', { cls: 'osc-api-validation-status' });
+  const validationStatus = setting.descEl.createSpan({ cls: 'osc-api-validation-status' });
   if (!signupUrl) return;
   setting.descEl.createEl('br');
   const linkEl = setting.descEl.createEl('a', {

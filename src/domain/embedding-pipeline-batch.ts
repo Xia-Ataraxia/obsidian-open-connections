@@ -33,7 +33,7 @@ export function compute_backoff(retry_number: number, error: unknown): number {
     error &&
     typeof error === 'object' &&
     'retryAfterMs' in error &&
-    typeof (error as { retryAfterMs: unknown }).retryAfterMs === 'number'
+    typeof (error).retryAfterMs === 'number'
   ) {
     return (error as { retryAfterMs: number }).retryAfterMs;
   }
@@ -120,7 +120,7 @@ export async function process_batch(
       last_error = error as Error;
       retries++;
       if (retries <= max_retries) {
-        await new Promise((resolve) => setTimeout(resolve, compute_backoff(retries, error)));
+        await new Promise((resolve) => window.setTimeout(resolve, compute_backoff(retries, error)));
       }
     }
   }

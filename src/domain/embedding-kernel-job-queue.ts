@@ -35,8 +35,8 @@ export class EmbeddingKernelJobQueue {
       promise,
     };
 
-    this.pending.push(pending as PendingJob);
-    this.indexed.set(job.key, pending as PendingJob);
+    this.pending.push(pending);
+    this.indexed.set(job.key, pending);
     this.inflight.set(job.key, pending.promise);
     this.pending.sort((a, b) => a.job.priority - b.job.priority);
     this.scheduleProcess();

@@ -31,7 +31,7 @@ export class EmbeddingSource extends EmbeddingEntity {
   cached_metadata?: CachedMetadata;
 
   constructor(collection: EntityCollection<EmbeddingEntity>, data: Partial<SourceData> = {}) {
-    super(collection, data, { path: '', embeddings: {} } as EntityData);
+    super(collection, data, { path: '', embeddings: {} });
   }
 
   /**
@@ -42,7 +42,7 @@ export class EmbeddingSource extends EmbeddingEntity {
       ...super.get_defaults(),
       path: '',
       embeddings: {},
-    } as SourceData;
+    };
   }
 
   /**
