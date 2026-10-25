@@ -841,12 +841,26 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   height: 48px;
 }
 
+@keyframes osc-fade-only {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .osc-embed-progress--indeterminate .setting-progress-bar-inner,
-  .osc-result-item,
+  .osc-embed-progress--indeterminate .setting-progress-bar-inner {
+    animation: osc-pulse 2.4s ease-in-out infinite;
+  }
+
+  .osc-result-item {
+    animation-name: osc-fade-only;
+  }
+
+  .osc-lookup-result {
+    animation-name: osc-fade-only;
+  }
+
   .osc-status-dot--loading,
-  .osc-lookup-result,
   .osc-lookup-loading-text {
-    animation: none;
+    animation-duration: 3s;
   }
 }
