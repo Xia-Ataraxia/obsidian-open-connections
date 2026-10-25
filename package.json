@@ -1,6 +1,6 @@
 {
   "name": "open-connections",
-  "version": "3.9.47",
+  "version": "3.9.48",
   "type": "module",
   "bin": {
     "open-connections-mcp": "dist/mcp.js"
