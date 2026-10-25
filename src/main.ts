@@ -95,6 +95,8 @@ export default class SmartConnectionsPlugin extends Plugin {
   status_elm?: HTMLElement;
   status_container?: HTMLElement;
   status_msg?: HTMLElement;
+  status_icon?: HTMLElement;
+  status_progress?: HTMLElement;
   re_import_timeout?: number;
   _unloading = false;
   _installed_at: number | null = null;
