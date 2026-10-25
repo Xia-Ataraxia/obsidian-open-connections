@@ -173,7 +173,7 @@ embedAdapterRegistry.register({
   displayName: 'Ollama (Local)',
   AdapterClass: OllamaEmbedAdapter,
   models: {},
-  defaultDims: 384,
+  defaultDims: 0, // unknown until vectors exist; models are discovered at runtime
   requiresApiKey: false,
   requiresHost: true,
   defaultHost: 'http://localhost:11434',

@@ -64,13 +64,13 @@ export function loadBlockMeta(
   return map;
 }
 
-/** Detect embedding dimensions from the first available row for a model key. */
+/** Detect embedding dimensions from the stored vector length (the `dims` column can be wrong for dynamic models). */
 export function detectDims(db: DatabaseSync, modelKey: string): number | null {
   const row = db.prepare(`
-    SELECT dims FROM entity_embeddings
-    WHERE model_key = ? AND dims IS NOT NULL LIMIT 1
+    SELECT LENGTH(vec) / 4 AS dims FROM entity_embeddings
+    WHERE model_key = ? AND vec IS NOT NULL LIMIT 1
   `).get(modelKey) as { dims: number } | undefined;
-  return row?.dims ?? null;
+  return row?.dims || null;
 }
 
 function parseExtraJson(extra: unknown): Record<string, unknown> {

@@ -171,7 +171,7 @@ embedAdapterRegistry.register({
   displayName: 'LM Studio (Local)',
   AdapterClass: LmStudioEmbedAdapter,
   models: {},
-  defaultDims: 384,
+  defaultDims: 0, // unknown until vectors exist; models are discovered at runtime
   requiresApiKey: false,
   requiresHost: true,
   defaultHost: 'http://localhost:1234',

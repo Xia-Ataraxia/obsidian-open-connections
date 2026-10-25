@@ -246,6 +246,19 @@ describe.skipIf(!hasNodeSqlite)('NodeSqliteDataAdapter', () => {
 
   // ── Cosine similarity query ───────────────────────────────────────────────
 
+  it('infers the vector dimension from stored vectors when the model declares none', async () => {
+    collection.embed_model_dims = 0;
+    const entity = makeEntity('a.md', [1.0, 0.0, 0.0, 0.0]);
+    entity.data.embedding_meta['test-model'].dims = 384; // stale value written by older versions
+    await adapter.save_batch([entity]);
+
+    adapter.rebuildVectorIndex();
+
+    expect((adapter as any)._vectorIndex.dims).toBe(4);
+    const results = await adapter.query_nearest([1.0, 0.0, 0.0, 0.0], { limit: 1 });
+    expect(results[0].entity_key).toBe('a.md');
+  });
+
   it('query_nearest returns results ranked by cosine similarity', async () => {
     collection.embed_model_dims = 4;
 
