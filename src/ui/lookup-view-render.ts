@@ -1,7 +1,8 @@
-import { ButtonComponent, Platform, setIcon } from 'obsidian';
+import { ButtonComponent, setIcon } from 'obsidian';
 
 import type SmartConnectionsPlugin from '../main';
 import type { ConnectionResult } from '../types/entities';
+import { listenOnRendered } from './connections-view-dom';
 import { showResultContextMenu } from './result-context-menu';
 import {
   formatLookupBlockIndicator,
@@ -19,7 +20,6 @@ interface LookupViewRenderContext {
   searchMetaEl: HTMLElement;
   lastQuery: string;
   activeFilter: LookupFilter;
-  registerDomEvent: (el: HTMLElement, type: string, callback: (event: Event) => void) => void;
   retrySearch: () => void;
 }
 
@@ -77,9 +77,9 @@ export function renderLookupResults(
         role: 'listitem',
         tabindex: '0',
         'aria-label': `${formatLookupTitle(key)} — similarity ${Math.round(score * 100)}%`,
-        style: `--osc-lookup-delay: ${index * 30}ms`,
       },
     });
+    item.setCssProps({ '--osc-lookup-delay': `${index * 30}ms` });
 
     item.createDiv({ cls: `osc-lookup-result-bar osc-lookup-result-bar--${tier}` });
     const body = item.createDiv({ cls: 'osc-lookup-result-body' });
@@ -98,10 +98,10 @@ export function renderLookupResults(
     const blockIndicator = formatLookupBlockIndicator(key);
     if (blockIndicator) body.createDiv({ text: blockIndicator, cls: 'osc-lookup-result-block-indicator' });
 
-    view.registerDomEvent(item, 'click', (event) => {
+    listenOnRendered(item, 'click', (event) => {
       void view.plugin.open_note(key, event as MouseEvent);
     });
-    view.registerDomEvent(item, 'keydown', (event) => {
+    listenOnRendered(item, 'keydown', (event) => {
       const keyEvent = event as KeyboardEvent;
       if (keyEvent.key === 'Enter') {
         void view.plugin.open_note(key);
@@ -113,10 +113,10 @@ export function renderLookupResults(
         (item.previousElementSibling as HTMLElement | null)?.focus();
       }
     });
-    view.registerDomEvent(item, 'contextmenu', (event) => {
+    listenOnRendered(item, 'contextmenu', (event) => {
       showResultContextMenu(view.app, fullPath, event as MouseEvent);
     });
-    view.registerDomEvent(item, 'mouseover', (event) => {
+    listenOnRendered(item, 'mouseover', (event) => {
       view.app.workspace.trigger('hover-link', {
         event: event as MouseEvent,
         source: 'open-connections-lookup',
@@ -126,7 +126,7 @@ export function renderLookupResults(
       });
     });
     item.setAttribute('draggable', 'true');
-    view.registerDomEvent(item, 'dragstart', (event) => {
+    listenOnRendered(item, 'dragstart', (event) => {
       const linkText = key.replace(/\.md$/, '').replace(/\.md#/, '#');
       (event as DragEvent).dataTransfer?.setData('text/plain', `[[${linkText}]]`);
     });
@@ -149,11 +149,6 @@ export function showLookupEmpty(
   const iconEl = wrapper.createDiv({ cls: 'osc-lookup-empty-icon' });
   setIcon(iconEl, 'search');
   wrapper.createEl('p', { text: message, cls: 'osc-state-text' });
-  const modKey = Platform?.isMacOS || Platform?.isIosApp ? 'Cmd' : 'Ctrl';
-  wrapper.createEl('p', {
-    text: `${modKey}+Shift+L to focus search`,
-    cls: 'osc-state-hint',
-  });
 }
 
 export function showLookupError(view: LookupViewRenderContext, message = 'An error occurred'): void {
