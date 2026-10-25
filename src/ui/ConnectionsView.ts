@@ -5,6 +5,8 @@ import type { ConnectionResult } from '../types/entities';
 import type { ConnectionsReader } from '../types/connections-reader';
 import { ConnectionsResultCache } from '../domain/connections/result-cache';
 import { decideRender } from '../domain/connections/render-orchestration';
+import { syncModelDownload, type ModelDownloadEl } from './connections-model-download';
+import { onModelDownload } from './embed-adapters/transformers-progress';
 import { applyConnectionsViewState, deriveConnectionsViewState, scheduleConnectionsRetry } from './connections-view-state';
 import {
   cancelPendingRetry,
@@ -40,6 +42,7 @@ export class ConnectionsView extends ItemView {
   container: HTMLElement;
   session: ConnectionsSessionState = { pinnedKeys: [], hiddenKeys: [], paused: false };
   folderFilter = '';
+  modelDownloadEl: ModelDownloadEl | null = null;
   embedProgress: { update(): void; destroy(): void } | null = null;
   lastRenderedPath: string | null = null;
   lastSearchFingerprint: string | null = null;
@@ -100,6 +103,7 @@ export class ConnectionsView extends ItemView {
     this.registerEvent(this.app.workspace.on('open-connections:embed-progress', () => {
       this.updateProgressBanner();
     }));
+    this.register(onModelDownload((snapshot) => syncModelDownload(this, snapshot)));
     this.registerEvent(this.app.workspace.on('layout-change', () => {
       if (this._needsRefresh && typeof this.container?.checkVisibility === 'function' && this.container.checkVisibility()) {
         this._needsRefresh = false;

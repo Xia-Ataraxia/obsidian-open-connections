@@ -60,6 +60,19 @@ const parent_cache = {
   },
 };
 
+let last_progress_at = 0;
+function report_progress(p) {
+  if (!p || typeof p.file !== 'string') return;
+  const finished = p.status === 'done';
+  if (p.status !== 'progress' && !finished) return;
+  const now = Date.now();
+  if (!finished && now - last_progress_at < 100) return;
+  last_progress_at = now;
+  const total = Number(p.total) || 0;
+  const loaded = finished ? total : Number(p.loaded) || 0;
+  window.parent.postMessage({ iframe_id: IFRAME_ID, channel_token: CHANNEL_TOKEN, type: 'progress', file: p.file, loaded, total }, '*');
+}
+
 async function load_transformers_with_fallback(model_key, use_gpu) {
   const { pipeline: createPipeline, env, AutoTokenizer } = await import(
     'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.0'
@@ -88,7 +101,7 @@ async function load_transformers_with_fallback(model_key, use_gpu) {
     gpu_log('[SC:GPU] trying config: ' + JSON.stringify(config));
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
       try {
-        pipeline = await createPipeline('feature-extraction', model_key, config);
+        pipeline = await createPipeline('feature-extraction', model_key, { ...config, progress_callback: report_progress });
         final_backend = config.device === 'webgpu' ? 'webgpu' : 'wasm';
         gpu_diag.backend = final_backend;
         gpu_log('[SC:GPU] config SUCCESS: ' + JSON.stringify(config));
@@ -118,7 +131,7 @@ async function load_transformers_with_fallback(model_key, use_gpu) {
     throw last_error || new Error('[download:unknown] Failed to initialize transformers pipeline');
   }
 
-  tokenizer = await AutoTokenizer.from_pretrained(model_key);
+  tokenizer = await AutoTokenizer.from_pretrained(model_key, { progress_callback: report_progress });
   current_model_key = model_key;
 }
 

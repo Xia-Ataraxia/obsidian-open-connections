@@ -1,4 +1,5 @@
 import { invalidateConnectionsCache } from './block-connections';
+import { syncModelDownload } from './connections-model-download';
 import type { ConnectionsView } from './ConnectionsView';
 import { clearAutoEmbedTimeout } from './connections-view-auto-embed';
 
@@ -75,4 +76,5 @@ export function updateConnectionsProgressBanner(view: ConnectionsView): void {
   }
 
   addConnectionsBanner(view, message);
+  syncModelDownload(view);
 }

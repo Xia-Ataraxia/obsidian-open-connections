@@ -14,6 +14,7 @@ import {
   type TransformersResponseMessage,
 } from './transformers-bridge-contract';
 import { getModelCacheStore } from './transformers-cache';
+import { reportModelDownload, resetModelDownload } from './transformers-progress';
 import { TRANSFORMERS_EMBED_MODELS } from './transformers-models';
 
 type PendingRequest = {
@@ -81,7 +82,12 @@ export class TransformersEmbedAdapter {
     this.iframe.srcdoc = create_transformers_srcdoc(this.iframe_id, this.channel_token);
 
     await wait_for_iframe_load(this.iframe);
-    await this.send_message('load', { model_key: this.model_key });
+    resetModelDownload();
+    try {
+      await this.send_message('load', { model_key: this.model_key });
+    } finally {
+      resetModelDownload();
+    }
     this.loaded = true;
   }
 
@@ -136,6 +142,10 @@ export class TransformersEmbedAdapter {
     if (!msg) return;
     if (msg.type === 'log') {
       console.debug(String(msg.message ?? ''));
+      return;
+    }
+    if (msg.type === 'progress') {
+      if (typeof msg.file === 'string') reportModelDownload(msg.file, Number(msg.loaded), Number(msg.total));
       return;
     }
     if (msg.type === 'cache_get' || msg.type === 'cache_put') {
