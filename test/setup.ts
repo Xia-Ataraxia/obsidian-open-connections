@@ -33,3 +33,17 @@ beforeAll(() => {
 afterEach(() => {
   vi.clearAllMocks();
 });
+
+// Obsidian global DOM helpers (not provided by jsdom).
+const g = globalThis as any;
+if (typeof document !== 'undefined' && !g.createEl) {
+  g.createEl = (tag: string, o: { cls?: string; text?: string; type?: string } = {}) => {
+    const el = document.createElement(tag) as HTMLElement & { type?: string };
+    if (o.cls) el.className = o.cls;
+    if (o.text !== undefined) el.textContent = o.text;
+    if (o.type) el.type = o.type;
+    return el;
+  };
+  g.createDiv = (o: { cls?: string; text?: string } = {}) => g.createEl('div', o);
+  g.createFragment = () => document.createDocumentFragment();
+}
