@@ -685,6 +685,13 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   padding: 2px 0;
 }
 
+.osc-lookup-search-wrapper .osc-lookup-input,
+.osc-lookup-search-wrapper .osc-lookup-input:focus {
+  box-shadow: none;
+  border: none;
+  background: transparent;
+}
+
 .osc-lookup-input::placeholder {
   color: var(--text-faint);
 }
