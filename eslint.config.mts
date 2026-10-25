@@ -32,11 +32,6 @@ export default tseslint.config(
 			'depend/ban-dependencies': 'off',
 		},
 	},
-	// Standalone Node MCP process: Obsidian's requestUrl is unavailable, so global fetch is required.
-	{
-		files: ['src/mcp/**/*.ts'],
-		rules: { 'no-restricted-globals': 'off' },
-	},
 	// Ban common async/type hazards in non-test TypeScript code.
 	{
 		files: ['**/*.ts', '**/*.mts'],
