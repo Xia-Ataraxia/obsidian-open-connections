@@ -64,7 +64,7 @@ export class SourceCollection extends EntityCollection<EmbeddingSource> {
     if (!source) {
       source = this.create_or_update({
         path: file.path,
-      } as SourceData);
+      });
     }
 
     // Update from file

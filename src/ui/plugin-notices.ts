@@ -17,7 +17,7 @@ const BUILTIN_TEMPLATES: Record<string, string> = {
 
 export class PluginNotices {
 	private readonly active = new Map<string, Notice>();
-	private readonly activeTimers = new Map<string, ReturnType<typeof setTimeout>>();
+	private readonly activeTimers = new Map<string, number>();
 
 	constructor(
 		private readonly plugin: PluginNoticesHost,
@@ -55,7 +55,7 @@ export class PluginNotices {
 
 		const timer = this.activeTimers.get(id);
 		if (timer !== undefined) {
-			clearTimeout(timer);
+			window.clearTimeout(timer);
 			this.activeTimers.delete(id);
 		}
 	}
@@ -138,22 +138,16 @@ export class PluginNotices {
 		text: string,
 		opts: { button?: { text: string; callback: () => void }; immutable: boolean },
 	): DocumentFragment {
-		const fragment = document.createDocumentFragment();
-		const wrapper = document.createElement('div');
-		wrapper.className = 'plugin-notice';
+		const fragment = createFragment();
+		const wrapper = createDiv({ cls: 'plugin-notice' });
 
-		const head = document.createElement('p');
-		head.className = 'plugin-notice-head';
-		head.textContent = `[${this.prefix}]`;
+		const head = createEl('p', { cls: 'plugin-notice-head', text: `[${this.prefix}]` });
 		wrapper.appendChild(head);
 
-		const body = document.createElement('p');
-		body.className = 'plugin-notice-content';
-		body.textContent = text;
+		const body = createEl('p', { cls: 'plugin-notice-content', text });
 		wrapper.appendChild(body);
 
-		const actions = document.createElement('div');
-		actions.className = 'plugin-notice-actions';
+		const actions = createDiv({ cls: 'plugin-notice-actions' });
 
 		if (opts.button?.text && typeof opts.button.callback === 'function') {
 			const btn = this.createActionButton(opts.button.text, () => {
@@ -177,18 +171,13 @@ export class PluginNotices {
 	}
 
 	private createActionButton(text: string, callback: () => void): HTMLButtonElement {
-		const button = document.createElement('button');
-		button.className = 'plugin-notice-btn';
-		button.type = 'button';
-		button.textContent = text;
+		const button = createEl('button', { cls: 'plugin-notice-btn', type: 'button', text });
 		button.addEventListener('click', callback);
 		return button;
 	}
 
 	private createMuteButton(id: string): HTMLButtonElement {
-		const button = document.createElement('button');
-		button.className = 'plugin-notice-btn plugin-notice-btn--mute';
-		button.type = 'button';
+		const button = createEl('button', { cls: 'plugin-notice-btn plugin-notice-btn--mute', type: 'button' });
 		button.setAttribute('aria-label', `Mute notice: ${id}`);
 		setIcon(button, 'bell-off');
 		button.addEventListener('click', () => {
@@ -207,12 +196,12 @@ export class PluginNotices {
 	private scheduleCleanup(id: string, timeout: number): void {
 		const existing = this.activeTimers.get(id);
 		if (existing !== undefined) {
-			clearTimeout(existing);
+			window.clearTimeout(existing);
 			this.activeTimers.delete(id);
 		}
 		if (timeout <= 0) return;
 
-		const timer = setTimeout(() => {
+		const timer = window.setTimeout(() => {
 			this.active.delete(id);
 			this.activeTimers.delete(id);
 		}, timeout + 50);

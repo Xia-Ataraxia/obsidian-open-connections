@@ -59,7 +59,7 @@ export async function runEmbeddingJobNow(
   const context = createRunContext(plugin, reason, entitiesToEmbed);
   beginEmbedProfilingStage(plugin, 'embedding:run');
   startRun(plugin, context);
-  let unresolvedAfterRun = 0;
+  let unresolvedAfterRun: number;
   let lastProgressEmit = 0;
 
   try {

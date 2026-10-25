@@ -32,13 +32,13 @@ export function renderEmbedProgress(
   const heartbeat = wrapper.createDiv({ cls: 'osc-embed-progress-heartbeat' });
 
   let previousFilename = '';
-  let completionTimer: ReturnType<typeof setTimeout> | null = null;
+  let completionTimer: number | null = null;
   let destroyed = false;
 
   function destroy(): void {
     if (destroyed) return;
     destroyed = true;
-    if (completionTimer) clearTimeout(completionTimer);
+    if (completionTimer) window.clearTimeout(completionTimer);
     wrapper.remove();
   }
 
@@ -67,7 +67,7 @@ export function renderEmbedProgress(
     const phase = detectPhase(embeddedBlocks, totalBlocks);
 
     if (phase < 3 && completionTimer) {
-      clearTimeout(completionTimer);
+      window.clearTimeout(completionTimer);
       completionTimer = null;
       wrapper.removeClass('osc-embed-progress--complete');
     }
@@ -108,10 +108,10 @@ export function renderEmbedProgress(
         const filename = currentPath.split('/').pop() ?? '';
         if (filename && filename !== previousFilename) {
           heartbeat.addClass('osc-embed-progress-heartbeat--changing');
-          requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
             heartbeat.setText(filename);
             heartbeat.removeClass('osc-embed-progress-heartbeat--hidden');
-            requestAnimationFrame(() => heartbeat.removeClass('osc-embed-progress-heartbeat--changing'));
+            window.requestAnimationFrame(() => heartbeat.removeClass('osc-embed-progress-heartbeat--changing'));
           });
           previousFilename = filename;
         } else if (!filename) {
@@ -130,7 +130,7 @@ export function renderEmbedProgress(
 
         if (!completionTimer) {
           wrapper.addClass('osc-embed-progress--complete');
-          completionTimer = setTimeout(destroy, COMPLETION_VISIBLE_MS + COMPLETION_FADE_MS);
+          completionTimer = window.setTimeout(destroy, COMPLETION_VISIBLE_MS + COMPLETION_FADE_MS);
         }
         break;
     }

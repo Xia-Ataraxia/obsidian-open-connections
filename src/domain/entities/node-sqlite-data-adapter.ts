@@ -110,7 +110,7 @@ export class NodeSqliteDataAdapter<T extends EmbeddingEntity> {
     }
     return queryNodeSqliteNearest(
       this.requireDb(),
-      this.collection as unknown as EntityCollection<EmbeddingEntity>,
+      this.collection,
       this.entity_type,
       vec,
       filter,

@@ -6,6 +6,9 @@
 
 import type { SearchFilter } from '../types/entities';
 
+// Shared with the standalone MCP (Node, no `window`).
+const timerHost = (): typeof globalThis => (typeof window !== 'undefined' ? window : globalThis);
+
 export type VectorMatch = { entity_key: string; score: number };
 
 const QUERY_CHUNK_SIZE = 1000;
@@ -84,7 +87,7 @@ export class FlatVectorIndex {
       }
 
       if (end < this._size) {
-        await new Promise<void>(r => setTimeout(r, 0));
+        await new Promise<void>(r => timerHost().setTimeout(r, 0));
       }
     }
 

@@ -8,7 +8,7 @@ export async function initCollections(plugin: SmartConnectionsPlugin): Promise<v
     const dataDir = `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}/.smart-env`;
     const storageNamespace = resolveStorageNamespace(plugin, dataDir);
     const adapterSettings = getEmbedAdapterSettings(
-      plugin.settings.smart_sources.embed_model as unknown as Record<string, unknown>,
+      plugin.settings.smart_sources.embed_model,
     );
     const modelKey =
       plugin.embed_adapter?.model_key || (adapterSettings.model_key as string | undefined) || 'None';

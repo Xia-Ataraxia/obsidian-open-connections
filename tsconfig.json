@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": "dist",
     "paths": {
       "src/*": ["./src/*"]
@@ -11,7 +10,7 @@
     "target": "ES2018",
     "allowJs": true,
     "noImplicitAny": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "isolatedModules": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
@@ -21,7 +20,9 @@
     "lib": ["DOM", "ES2018"],
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strict": false,
+    "types": ["node"]
   },
   "include": ["src/**/*", "worker/**/*", "test/**/*"],
   "exclude": ["node_modules", "lib", "dist"]

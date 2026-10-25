@@ -1,6 +1,6 @@
 {
   "name": "open-connections",
-  "version": "3.9.47",
+  "version": "3.9.49",
   "type": "module",
   "bin": {
     "open-connections-mcp": "dist/mcp.js"
@@ -14,8 +14,8 @@
     "dev:build": "node esbuild.js --watch",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "typecheck:watch": "tsc --noEmit -p tsconfig.typecheck.json --watch",
-    "test": "vitest run --workspace vitest.workspace.ts",
-    "test:watch": "vitest --workspace vitest.workspace.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "verify:test-vault": "node scripts/verify-test-vault.mjs",
     "verify:vault-freshness": "node scripts/check-vault-build-freshness.mjs",
     "lint": "eslint src",
@@ -52,30 +52,30 @@
   },
   "homepage": "https://github.com/Xia-Ataraxia/obsidian-open-connections#readme",
   "devDependencies": {
-    "@commitlint/cli": "^19.0.0",
-    "@commitlint/config-conventional": "^19.0.0",
-    "@eslint/js": "9.30.1",
-    "@huggingface/transformers": "^3.7.2",
-    "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^1.6.1",
-    "@vitest/ui": "^1.0.0",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@eslint/js": "10.0.1",
+    "@huggingface/transformers": "^4.3.1",
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/ui": "^5.0.5",
     "@xenova/transformers": "latest",
-    "archiver": "^6.0.1",
-    "axios": "^1.6.7",
-    "dotenv": "^16.3.1",
-    "esbuild": "0.25.5",
-    "eslint": "^9.39.4",
-    "eslint-plugin-obsidianmd": "^0.1.9",
+    "archiver": "^8.0.0",
+    "axios": "^1.20.0",
+    "dotenv": "^18.0.9",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-obsidianmd": "^0.4.2",
     "eslint-plugin-vitest": "^0.5.4",
-    "globals": "14.0.0",
+    "globals": "17.13.0",
     "husky": "^9.1.7",
-    "jiti": "2.6.1",
-    "jsdom": "^24.1.0",
-    "lint-staged": "^16.3.2",
-    "swagger-jsdoc": "^6.2.8",
-    "typescript": "5.8.3",
-    "typescript-eslint": "8.35.1",
-    "vitest": "^1.0.0"
+    "jiti": "2.7.0",
+    "lint-staged": "^17.6.0",
+    "swagger-jsdoc": "^6.3.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
   },
   "lint-staged": {
     "src/**/*.ts": [
@@ -92,9 +92,9 @@
   },
   "dependencies": {
     "base64-js": "^1.5.1",
-    "js-tiktoken": "^1.0.19",
-    "lucide-static": "^0.414.0",
-    "node-fetch": "^2.7.0",
+    "js-tiktoken": "^1.0.21",
+    "lucide-static": "^1.61.0",
+    "node-fetch": "^3.3.2",
     "obsidian": "latest"
   }
 }

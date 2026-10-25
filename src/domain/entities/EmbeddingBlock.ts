@@ -21,7 +21,7 @@ export class EmbeddingBlock extends EmbeddingEntity {
   data: BlockData;
 
   constructor(collection: EntityCollection<EmbeddingEntity>, data: Partial<BlockData> = {}) {
-    super(collection, data, { path: '', text: '', length: 0, embeddings: {} } as EntityData);
+    super(collection, data, { path: '', text: '', length: 0, embeddings: {} });
   }
 
   /**
@@ -34,7 +34,7 @@ export class EmbeddingBlock extends EmbeddingEntity {
       text: '',
       length: 0,
       embeddings: {},
-    } as BlockData;
+    };
   }
 
   /**

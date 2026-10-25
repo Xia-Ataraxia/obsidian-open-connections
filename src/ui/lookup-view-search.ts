@@ -14,10 +14,10 @@ export function getActiveCollections(
 ): SearchableCollection[] {
   const collections: SearchableCollection[] = [];
   if (activeFilter !== 'blocks' && plugin.source_collection) {
-    collections.push(plugin.source_collection as SearchableCollection);
+    collections.push(plugin.source_collection);
   }
   if (activeFilter !== 'notes' && plugin.block_collection) {
-    collections.push(plugin.block_collection as SearchableCollection);
+    collections.push(plugin.block_collection);
   }
   return collections;
 }
