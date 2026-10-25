@@ -3,11 +3,13 @@
  * @description Lightweight embedding adapter for standalone MCP mode.
  *
  * Reads adapter type and credentials from data.json settings, then calls the
- * provider's embedding endpoint using fetch (Node 18+).
+ * provider's embedding endpoint using node:http(s).
  * Only API-based adapters are supported -- transformers is not available
  * outside the Obsidian browser environment.
  */
 
+import http from 'node:http';
+import https from 'node:https';
 import type { EmbedModelSettings, SearchModelSettings } from '../types/settings';
 
 export interface StandaloneEmbedConfig {
@@ -144,11 +146,31 @@ async function openaiCompatibleEmbed(
   return data[0].embedding;
 }
 
-async function fetchJson(url: string, init: RequestInit): Promise<unknown> {
-  const resp = await fetch(url, init);
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => '');
-    throw new Error(`HTTP ${resp.status} from ${url}: ${text.slice(0, 200)}`);
-  }
-  return resp.json();
+function fetchJson(
+  url: string,
+  init: { method: string; headers: Record<string, string>; body: string },
+): Promise<unknown> {
+  const transport = url.startsWith('https:') ? https : http;
+  return new Promise((resolve, reject) => {
+    const req = transport.request(url, { method: init.method, headers: init.headers }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on('data', (chunk: Buffer) => chunks.push(chunk));
+      res.on('error', reject);
+      res.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        const status = res.statusCode ?? 0;
+        if (status < 200 || status >= 300) {
+          reject(new Error(`HTTP ${status} from ${url}: ${text.slice(0, 200)}`));
+          return;
+        }
+        try {
+          resolve(JSON.parse(text));
+        } catch (error) {
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.end(init.body);
+  });
 }
