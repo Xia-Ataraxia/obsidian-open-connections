@@ -135,4 +135,16 @@ describe('VaultFileDataAdapter', () => {
     results = await adapter.query_nearest([1, 0], { limit: 2 });
     expect(results.map((result) => result.entity_key)).toEqual(['b.md#h1']);
   });
+
+  it('starts empty instead of throwing on a corrupt store', async () => {
+    const vaultAdapter = makeVaultAdapter();
+    vaultAdapter.files.set('.obsidian/plugins/open-connections/open-connections.block.json', '{broken');
+    const collection = makeCollection();
+    const adapter = new VaultFileDataAdapter(collection, 'smart_blocks');
+    adapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await expect(adapter.load()).resolves.toBeUndefined();
+    expect(collection.all).toHaveLength(0);
+  });
 });

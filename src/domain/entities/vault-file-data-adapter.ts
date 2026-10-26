@@ -55,7 +55,14 @@ export class VaultFileDataAdapter<T extends EmbeddingEntity> {
       return;
     }
 
-    const parsed = JSON.parse(await adapter.read(path)) as StoredCollection;
+    let parsed: StoredCollection;
+    try {
+      parsed = JSON.parse(await adapter.read(path)) as StoredCollection;
+    } catch (error) {
+      // A corrupt store is rebuilt by re-embedding rather than blocking startup.
+      console.warn('[VaultFileDataAdapter] Ignoring unreadable store:', error);
+      return;
+    }
     for (const record of parsed.entities || []) {
       const data = deserializeEntityData(record.data);
       this.records.set(record.entity_key, cloneEntityData(data));
