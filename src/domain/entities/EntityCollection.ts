@@ -90,6 +90,10 @@ export abstract class EntityCollection<T extends EmbeddingEntity> {
     return this.all.filter(item => item._queue_save);
   }
 
+  get has_pending_deletes(): boolean {
+    return this.deleted_keys.size > 0;
+  }
+
   consume_deleted_keys(): string[] {
     const keys = Array.from(this.deleted_keys);
     this.deleted_keys.clear();
