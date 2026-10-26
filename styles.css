@@ -48,6 +48,23 @@ body {
   color: var(--text-error);
 }
 
+.osc-banner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+}
+
+.osc-banner-action {
+  display: none;
+  flex-shrink: 0;
+  font-size: var(--font-ui-smaller);
+}
+
+.osc-banner--error .osc-banner-action {
+  display: inline-flex;
+}
+
 .osc-banner-bar {
   display: none;
 }
@@ -228,11 +245,11 @@ body {
   transition-duration: 60ms;
 }
 
-.osc-header-actions .clickable-icon.is-loading {
+.osc-header-actions .clickable-icon.osc-is-refreshing {
   cursor: progress;
 }
 
-.osc-header-actions .clickable-icon.is-loading svg {
+.osc-header-actions .clickable-icon.osc-is-refreshing svg {
   animation: osc-status-spin 900ms linear infinite;
 }
 
@@ -664,7 +681,13 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
 }
 
 .osc-state--loading .osc-state-text {
-  animation: osc-pulse 2.4s ease-in-out infinite;
+  animation: osc-pulse-soft 2.4s ease-in-out infinite;
+}
+
+/* Text keeps --text-muted contrast at the trough; osc-pulse's 0.4 floor reads as faint. */
+@keyframes osc-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -931,7 +954,7 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
     transform: scale(0.96);
   }
 
-  .osc-header-actions .clickable-icon.is-loading svg,
+  .osc-header-actions .clickable-icon.osc-is-refreshing svg,
   .osc-state--loading .osc-state-icon svg {
     animation: osc-pulse 2.4s ease-in-out infinite;
   }

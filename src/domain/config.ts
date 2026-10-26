@@ -166,6 +166,7 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   cache_cleared: {
     label: 'Embedding cache cleared',
     template: 'Embedding cache cleared. Re-embedding all notes…',
+    immutable: true,
   },
   no_stale_entities: {
     label: 'Nothing to re-embed',
@@ -175,14 +176,17 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     label: 'Link copied',
     template: 'Link copied.',
     timeout: 2000,
+    immutable: true,
   },
   link_copy_failed: {
     label: "Couldn't copy link",
     template: "Couldn't copy the link.",
+    immutable: true,
   },
   content_rules_changed: {
     label: 'Content rules changed',
     template: 'Content rules changed. Re-embedding {{count}} notes…',
+    timeout: 4000,
   },
   folder_exclusion_reconcile_deferred: {
     label: 'Folder exclusion pending',
