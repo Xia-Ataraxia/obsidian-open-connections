@@ -4,7 +4,6 @@ import type { QueryMatch } from './node-sqlite-types';
 
 export interface EntityDataAdapter<T extends EmbeddingEntity> {
   initVaultContext(vaultAdapter: unknown, configDir: string, pluginId: string): void | Promise<void>;
-  initDbPath?(absoluteDbPath: string): void | Promise<void>;
   close(): void;
   load(): void | Promise<void>;
   rebuildVectorIndex(): void;

@@ -168,6 +168,10 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     template: 'Embedding cache cleared. Re-embedding all notes…',
     immutable: true,
   },
+  index_store_recovered: {
+    label: 'Index rebuilt',
+    template: 'The saved index could not be read, so notes are being re-embedded. A copy was kept at {{file}}.',
+  },
   no_stale_entities: {
     label: 'Nothing to re-embed',
     template: 'Everything is already embedded.',
