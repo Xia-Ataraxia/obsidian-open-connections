@@ -1010,7 +1010,7 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
 }
 
 .open-connections-status-msg {
-  max-width: 12em;
+  max-width: 16em;
   overflow: hidden;
   text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
