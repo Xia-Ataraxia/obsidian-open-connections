@@ -329,6 +329,7 @@ Before submitting to [obsidian-releases](https://github.com/obsidianmd/obsidian-
 ## Disclosures
 
 - **Local database** — embeddings are stored in `<vault>/<config dir>/plugins/open-connections/open-connections.db` via Node's built-in `node:sqlite`, which needs the vault's absolute path (Desktop only). The plugin reads notes through the Vault API only.
+- **Vault enumeration** — after the embedding model loads and when folder exclusions change, the plugin lists Markdown files (`vault.getMarkdownFiles()`) to find unindexed notes and count progress; the folder-exclusion settings list folders (`vault.getAllLoadedFiles()`). Paths stay local.
 - **Network** — API embedding providers you configure (OpenAI-compatible, Ollama, LM Studio, OpenRouter, Upstage, ...) receive note text for embedding; the default local model runs offline after its one-time model download.
 - **Local MCP server** — optional, off by default; listens on a local port when you start it.
 - **Standalone MCP CLI** (`node dist/mcp.js <vault>`) — a separate process that reads vault files directly from disk, with traversal and symlink-escape checks.
