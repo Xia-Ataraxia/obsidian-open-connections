@@ -163,6 +163,10 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   reimport_failed: {
     template: 'Updating changed notes failed. Refresh the connections view to retry.',
   },
+  cache_cleared: {
+    label: 'Embedding cache cleared',
+    template: 'Embedding cache cleared. Re-embedding all notes…',
+  },
   no_stale_entities: {
     label: 'Nothing to re-embed',
     template: 'Everything is already embedded.',

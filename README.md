@@ -159,13 +159,13 @@ Copy `dist/` contents to your vault's `.obsidian/plugins/open-connections/` dire
 
 Access these from the Command Palette (Cmd/Ctrl + P):
 
-- **Connections view** — Show the Connections panel
+- **Show connections** — Show the Connections panel
 - **Find connections to current note**
 - **Open smart lookup** — Show the Lookup panel
-- **Refresh embeddings** / **Re-embed stale entities**
+- **Refresh embeddings** / **Re-embed stale notes**
 - **Copy connections as smart context**
 - **Open random connection**
-- **Clear embedding cache**
+- **Clear embedding cache** — asks before deleting every embedding
 - **Start local server** / **Stop local server** — MCP server
 
 ### MCP Usage

@@ -9,6 +9,7 @@ import type { EmbeddingBlock } from '../domain/entities/EmbeddingBlock';
 import { ConnectionsView } from './ConnectionsView';
 import { LookupView } from './LookupView';
 import { getBlockConnections, invalidateConnectionsCache } from './block-connections';
+import { confirmWithModal } from './settings-confirm-modal';
 
 interface SmartConnectionsPluginCommands extends Plugin {
   block_collection?: BlockCollection;
@@ -30,7 +31,7 @@ export function registerCommands(plugin: Plugin): void {
   // Open connections view
   plugin.addCommand({
     id: 'connections-view',
-    name: 'Connections view',
+    name: 'Show connections',
     callback: () => {
       ConnectionsView.open(plugin.app.workspace);
     },
@@ -62,22 +63,22 @@ export function registerCommands(plugin: Plugin): void {
     },
   });
 
-  // Refresh embeddings
+  const reembedStale = async (reason: string): Promise<void> => {
+    if (!p.block_collection || !p.embedding_pipeline) return;
+    const queued = await p.reembedStaleEntities?.(reason);
+    if (queued === 0) p.notices?.show('no_stale_entities');
+  };
+
   plugin.addCommand({
     id: 'refresh-embeddings',
     name: 'Refresh embeddings',
-    callback: async () => {
-      if (!p.block_collection || !p.embedding_pipeline) return;
-      await p.reembedStaleEntities?.('Command: Refresh embeddings');
-    },
+    callback: () => reembedStale('Command: Refresh embeddings'),
   });
 
   plugin.addCommand({
     id: 'reembed-stale-entities',
-    name: 'Re-embed stale entities',
-    callback: async () => {
-      await p.reembedStaleEntities?.('Command: Re-embed stale entities');
-    },
+    name: 'Re-embed stale notes',
+    callback: () => reembedStale('Command: Re-embed stale entities'),
   });
 
   plugin.addCommand({
@@ -171,6 +172,12 @@ export function registerCommands(plugin: Plugin): void {
     name: 'Clear embedding cache',
     callback: async () => {
       if (p.source_collection) {
+        const confirmed = await confirmWithModal(
+          plugin.app,
+          'All embeddings will be deleted and every note re-embedded. This may take a while.',
+          { title: 'Clear embedding cache', cta: 'Clear and re-embed', warning: true },
+        );
+        if (!confirmed) return;
         for (const source of p.source_collection.all) {
           source.remove_embeddings();
         }
@@ -186,6 +193,7 @@ export function registerCommands(plugin: Plugin): void {
         p.source_collection.recomputeEmbeddedCount();
         p.block_collection?.recomputeEmbeddedCount();
         invalidateConnectionsCache();
+        p.notices?.show('cache_cleared');
         await p.reembedStaleEntities?.('Command: Clear embedding cache');
       }
     },

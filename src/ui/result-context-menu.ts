@@ -3,7 +3,7 @@
  * @description Shared context menu for result items in ConnectionsView and LookupView
  */
 
-import { Menu, TFile } from 'obsidian';
+import { Menu, Notice, TFile } from 'obsidian';
 import type { App } from 'obsidian';
 
 export interface ConnectionActions {
@@ -51,9 +51,13 @@ export function showResultContextMenu(
       .setTitle('Copy link')
       .setIcon('link')
       .onClick(() => {
-        navigator.clipboard
-          .writeText(`[[${fullPath.replace(/\.md$/, '')}]]`)
-          .catch((_err: unknown) => { /* clipboard write failure — no logger available at this scope */ });
+        const file = app.vault.getAbstractFileByPath(fullPath);
+        if (!(file instanceof TFile)) return;
+        const link = app.fileManager.generateMarkdownLink(file, app.workspace.getActiveFile()?.path ?? '');
+        navigator.clipboard.writeText(link).then(
+          () => new Notice('Link copied.', 2000),
+          () => new Notice('Couldn\'t copy the link.'),
+        );
       }),
   );
 
