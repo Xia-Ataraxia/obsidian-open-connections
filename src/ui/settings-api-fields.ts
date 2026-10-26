@@ -86,7 +86,7 @@ export function apiKeyDefinition(adapterName: string, config: ConfigAccessor): S
                 }
               }
             }
-            button.setButtonText('Validating...').setDisabled(true);
+            button.setButtonText('Validating…').setDisabled(true);
             try {
               await validateApiKey(adapterName, config, validationStatus);
             } finally {

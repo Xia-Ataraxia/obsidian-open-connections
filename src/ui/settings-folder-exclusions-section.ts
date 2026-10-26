@@ -29,6 +29,7 @@ async function handleAddExcludedFolder(
   const confirmed = await confirmWithModal(
     app,
     buildFolderExclusionConfirmMessage(selected, activeRun),
+    { title: 'Exclude folder', cta: 'Exclude', warning: true },
   );
   if (!confirmed) return;
 

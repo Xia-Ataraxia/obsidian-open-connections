@@ -84,7 +84,7 @@ export function renderEmbedProgress(
 
     switch (phase) {
       case 0:
-        labelEl.setText('Preparing model...');
+        labelEl.setText('Preparing model…');
         countEl.setText('');
         pctEl.setText('');
         heartbeat.setText('');
@@ -100,7 +100,7 @@ export function renderEmbedProgress(
         break;
 
       case 2: {
-        labelEl.setText(pending > 100 ? 'Embedding vault' : 'Updating notes...');
+        labelEl.setText(pending > 100 ? 'Embedding vault' : 'Updating notes…');
         countEl.setText(`${notesEmbedded.toLocaleString()} notes`);
         bar.setValue(vaultPct);
         pctEl.setText(`${vaultPct}%`);
@@ -122,7 +122,7 @@ export function renderEmbedProgress(
       }
 
       case 3:
-        labelEl.setText('\u2713 vault indexed');
+        labelEl.setText('Vault indexed \u2713');
         countEl.setText(`${notesTotal.toLocaleString()} notes`);
         bar.setValue(100);
         pctEl.setText('100%');

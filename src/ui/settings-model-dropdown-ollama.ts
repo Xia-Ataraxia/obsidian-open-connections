@@ -20,7 +20,7 @@ export function ollamaModelDefinitions(
           for (const model of OLLAMA_QUICK_PICKS) {
             dropdown.addOption(model.value, model.name);
           }
-          dropdown.addOption('__manual__', 'Manual entry...');
+          dropdown.addOption('__manual__', 'Manual entry…');
           dropdown.setValue(isQuickPick ? currentModelKey : '__manual__');
           dropdown.onChange((value) => handleOllamaQuickPickChange(
             value,

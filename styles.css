@@ -526,8 +526,17 @@ body {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 16px 10px;
+  gap: var(--size-4-2);
+  margin-top: var(--size-4-2);
+}
+
+.osc-mcp-endpoint {
+  font-size: var(--font-smallest);
+  user-select: text;
+}
+
+.osc-confirm-message {
+  white-space: pre-line;
 }
 
 .osc-status-pill {
@@ -561,6 +570,15 @@ body {
   background-color: var(--osc-color-error);
 }
 
+.osc-status-dot--idle {
+  background-color: var(--text-faint);
+}
+
+.osc-status-dot--active {
+  background-color: var(--interactive-accent);
+  animation: osc-pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes osc-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
@@ -572,12 +590,15 @@ body {
 }
 
 /* Stats grid */
+.osc-status-setting .setting-item-info {
+  margin-inline-end: 0;
+}
+
 .osc-stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 0 16px;
-  margin-bottom: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--size-4-2);
+  margin-top: var(--size-4-3);
 }
 
 .osc-stat-card {
@@ -934,6 +955,7 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   }
 
   .osc-status-dot--loading,
+  .osc-status-dot--active,
   .osc-lookup-loading-text {
     animation-duration: 3s;
   }
