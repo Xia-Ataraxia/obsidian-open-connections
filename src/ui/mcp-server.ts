@@ -3,6 +3,7 @@ import { createServer, type IncomingMessage, type Server as HttpServer, type Ser
 import type SmartConnectionsPlugin from '../main';
 import type { JsonRpcRequest, JsonRpcResponse } from '../types/mcp';
 import { dispatchMcpRequest } from '../mcp/dispatch';
+import { describeMcpStartError } from '../mcp/settings';
 import { isHttpRequestAuthorized } from '../mcp/http-auth';
 import { PluginMcpContext } from '../mcp/plugin-context';
 
@@ -84,13 +85,19 @@ export class OpenConnectionsMcpServer {
       void this.handleRequest(req, res);
     });
 
-    await new Promise<void>((resolve, reject) => {
-      server.once('error', reject);
-      server.listen(requestedPort, '127.0.0.1', () => {
-        server.off('error', reject);
-        resolve();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.once('error', reject);
+        server.listen(requestedPort, '127.0.0.1', () => {
+          server.off('error', reject);
+          resolve();
+        });
       });
-    });
+    } catch (error) {
+      this.plugin.logger.warn('[MCP] Failed to start server', { error });
+      this.plugin.notices?.show('mcp_server_failed', { error: describeMcpStartError(error, requestedPort) });
+      return;
+    }
 
     this.server = server;
     this.currentPort = requestedPort;

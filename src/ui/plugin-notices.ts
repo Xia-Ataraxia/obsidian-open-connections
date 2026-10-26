@@ -1,5 +1,4 @@
-import { Notice, setIcon } from 'obsidian';
-import { noticeLabel } from '../domain/config';
+import { Notice, setIcon, setTooltip } from 'obsidian';
 import type { NoticeCatalog } from '../types/settings';
 
 export interface NoticeShowOptions {
@@ -144,44 +143,29 @@ export class PluginNotices {
 		opts: { button?: { text: string; callback: () => void }; immutable: boolean },
 	): DocumentFragment {
 		const fragment = createFragment();
-		const wrapper = createDiv({ cls: 'plugin-notice' });
+		const wrapper = fragment.createDiv({ cls: 'osc-notice' });
+		wrapper.createDiv({ cls: 'osc-notice-head', text: this.prefix });
 
-		const head = createDiv({ cls: 'plugin-notice-head' });
-		head.createSpan({ text: this.prefix });
-		if (!opts.immutable) head.appendChild(this.createMuteButton(id));
-		wrapper.appendChild(head);
+		const row = wrapper.createDiv({ cls: 'osc-notice-row' });
+		row.createEl('p', { cls: 'osc-notice-content', text });
+		if (!opts.immutable) this.createMuteButton(row, id);
 
-		const body = createEl('p', { cls: 'plugin-notice-content', text });
-		wrapper.appendChild(body);
-
-		const actions = createDiv({ cls: 'plugin-notice-actions' });
-
-		if (opts.button?.text && typeof opts.button.callback === 'function') {
-			const btn = this.createActionButton(opts.button.text, () => {
-				opts.button?.callback();
+		const button = opts.button;
+		if (button?.text && typeof button.callback === 'function') {
+			const actions = wrapper.createDiv({ cls: 'osc-notice-actions' });
+			actions.createEl('button', { type: 'button', text: button.text }).addEventListener('click', () => {
+				button.callback();
 				this.remove(id);
 			});
-			actions.appendChild(btn);
 		}
 
-		if (actions.childElementCount > 0) {
-			wrapper.appendChild(actions);
-		}
-
-		fragment.appendChild(wrapper);
 		return fragment;
 	}
 
-	private createActionButton(text: string, callback: () => void): HTMLButtonElement {
-		const button = createEl('button', { cls: 'plugin-notice-btn', type: 'button', text });
-		button.addEventListener('click', callback);
-		return button;
-	}
-
-	private createMuteButton(id: string): HTMLButtonElement {
-		const button = createEl('button', { cls: 'plugin-notice-btn plugin-notice-btn--mute', type: 'button' });
-		button.setAttribute('aria-label', `Mute "${noticeLabel(id)}" notices`);
+	private createMuteButton(parent: HTMLElement, id: string): void {
+		const button = parent.createEl('button', { cls: 'clickable-icon osc-notice-mute', type: 'button' });
 		setIcon(button, 'bell-off');
+		setTooltip(button, 'Mute this notice');
 		button.addEventListener('click', () => {
 			void this.mute(id)
 				.then(() => {
@@ -192,7 +176,6 @@ export class PluginNotices {
 					console.error(`[${this.prefix}] Failed to mute notice:`, err);
 				});
 		});
-		return button;
 	}
 
 	private scheduleCleanup(id: string, timeout: number): void {

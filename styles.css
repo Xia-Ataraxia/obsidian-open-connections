@@ -346,84 +346,60 @@ body {
 /* Obsidian's .notice container always uses a dark background regardless of theme.
    Use `color: inherit` to pick up Obsidian's notice text color (light/white)
    instead of theme variables that assume the editor background. */
-.plugin-notice {
+.osc-notice {
   display: flex;
   flex-direction: column;
-  gap: var(--size-4-1);
+  gap: var(--size-2-1);
   min-width: 260px;
   color: inherit;
 }
 
-.plugin-notice-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--size-4-2);
-  min-height: var(--size-4-5);
+.osc-notice-head {
   font-size: var(--font-ui-smaller);
   font-weight: var(--font-semibold);
-  color: inherit;
-  letter-spacing: 0.02em;
+  opacity: 0.7;
 }
 
-.plugin-notice-head > span {
-  opacity: 0.6;
+.osc-notice-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
 }
 
-.plugin-notice-content {
+.osc-notice-content {
+  flex: 1;
   margin: 0;
   font-size: var(--font-ui-small);
   color: inherit;
   white-space: pre-wrap;
 }
 
-.plugin-notice-actions {
+/* The notice is dark in both themes, so the icon follows its text color. */
+.osc-notice-mute {
+  flex: none;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity 120ms ease-out, background-color 120ms ease-out;
+}
+
+.osc-notice-mute:hover,
+.osc-notice-mute:focus-visible {
+  color: inherit;
+  opacity: 1;
+  background-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.osc-notice-actions {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
   gap: var(--size-4-1);
 }
 
-/* Doubled class outranks Obsidian's `button:not(.clickable-icon)` fill and shadow. */
-.plugin-notice-btn.plugin-notice-btn {
-  height: auto;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  border-radius: var(--radius-s);
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  box-shadow: none;
-  color: inherit;
-  font-size: var(--font-ui-smaller);
-  padding: var(--size-2-1) var(--size-4-2);
-  cursor: pointer;
-  transition: background-color 120ms ease, opacity 120ms ease;
-}
-
-.plugin-notice-btn.plugin-notice-btn:hover {
-  background: color-mix(in srgb, currentColor 20%, transparent);
-}
-
-.plugin-notice-btn.plugin-notice-btn--mute {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-4-5);
-  height: var(--size-4-5);
-  margin: calc(var(--size-2-1) * -1) calc(var(--size-2-2) * -1) calc(var(--size-2-1) * -1) 0;
-  padding: 0;
-  border-color: transparent;
-  background: transparent;
-  opacity: 0.6;
-}
-
-.plugin-notice-btn.plugin-notice-btn--mute:hover,
-.plugin-notice-btn.plugin-notice-btn--mute:focus-visible {
-  background: color-mix(in srgb, currentColor 15%, transparent);
-  opacity: 1;
-}
-
-.plugin-notice-btn--mute .svg-icon {
-  width: var(--icon-xs);
-  height: var(--icon-xs);
+@media (prefers-reduced-motion: reduce) {
+  .osc-notice-mute {
+    transition-duration: 200ms;
+    transition-timing-function: linear;
+  }
 }
 
 /* ─── Muted Notices Settings ─── */

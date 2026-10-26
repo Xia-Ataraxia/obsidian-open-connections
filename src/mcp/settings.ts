@@ -42,3 +42,12 @@ export function parseMcpSettings(value: unknown): McpSettings {
     authToken,
   };
 }
+
+/** Plain-language reason for a failed server start; the raw error stays in the console. */
+export function describeMcpStartError(error: unknown, port: number): string {
+  const code = (error as { code?: unknown } | null)?.code;
+  const message = error instanceof Error ? error.message : String(error);
+  if (code === 'EADDRINUSE' || message.includes('EADDRINUSE')) return `Port ${port} is already in use.`;
+  if (code === 'EACCES' || message.includes('EACCES')) return `Port ${port} isn't allowed.`;
+  return message;
+}

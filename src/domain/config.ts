@@ -218,7 +218,7 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   },
   mcp_server_failed: {
     label: 'MCP server failed',
-    template: 'Failed to start MCP server: {{error}}',
+    template: "Couldn't start the local server. {{error}}",
     timeout: 8000,
   },
 };
