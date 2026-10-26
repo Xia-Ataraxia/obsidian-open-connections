@@ -12,6 +12,13 @@ function makeVaultAdapter() {
       files.set(path, data);
     }),
     mkdir: vi.fn(async () => {}),
+    remove: vi.fn(async (path: string) => {
+      files.delete(path);
+    }),
+    rename: vi.fn(async (from: string, to: string) => {
+      files.set(to, files.get(from) ?? '');
+      files.delete(from);
+    }),
   };
 }
 
@@ -97,7 +104,7 @@ describe('VaultFileDataAdapter', () => {
     await adapter.save();
 
     expect(vaultAdapter.write).toHaveBeenCalledWith(
-      '.obsidian/plugins/open-connections/open-connections.block.json',
+      '.obsidian/plugins/open-connections/open-connections.block.json.tmp',
       expect.any(String),
     );
     expect(collection.all[0]._queue_save).toBe(false);
@@ -164,5 +171,57 @@ describe('VaultFileDataAdapter', () => {
 
     await expect(adapter.load()).resolves.toBeUndefined();
     expect(collection.all).toHaveLength(0);
+  });
+
+  it('keeps a copy of a malformed store and reports it', async () => {
+    const vaultAdapter = makeVaultAdapter();
+    const path = '.obsidian/plugins/open-connections/open-connections.block.json';
+    vaultAdapter.files.set(path, 'null');
+    const adapter = new VaultFileDataAdapter(makeCollection(), 'smart_blocks');
+    adapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+    const onStoreRecovered = vi.fn();
+    adapter.onStoreRecovered = onStoreRecovered;
+
+    await adapter.load();
+
+    const backup = onStoreRecovered.mock.calls[0][0] as string;
+    expect(backup).toMatch(/open-connections\.block\.corrupt-\d+\.json$/);
+    expect(vaultAdapter.files.get(backup)).toBe('null');
+  });
+
+  it('writes through a temp file and leaves none behind', async () => {
+    const vaultAdapter = makeVaultAdapter();
+    const collection = makeCollection();
+    collection.create_or_update(makeEntity('a.md#h1', [1, 0]).data);
+    const adapter = new VaultFileDataAdapter(collection, 'smart_blocks');
+    adapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+    await adapter.save();
+
+    expect([...vaultAdapter.files.keys()]).toEqual(['.obsidian/plugins/open-connections/open-connections.block.json']);
+  });
+
+  it('serializes overlapping saves so the newest snapshot wins', async () => {
+    const vaultAdapter = makeVaultAdapter();
+    const slowWrite = vaultAdapter.write.getMockImplementation()!;
+    let first = true;
+    vaultAdapter.write.mockImplementation(async (path: string, data: string) => {
+      if (first) {
+        first = false;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      return slowWrite(path, data);
+    });
+    const collection = makeCollection();
+    const a = makeEntity('a.md#h1', [1, 0]);
+    const b = makeEntity('b.md#h1', [0, 1]);
+    const adapter = new VaultFileDataAdapter(collection, 'smart_blocks');
+    adapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+
+    await Promise.all([adapter.save_batch([a]), adapter.save_batch([b])]);
+
+    const stored = JSON.parse(
+      vaultAdapter.files.get('.obsidian/plugins/open-connections/open-connections.block.json')!,
+    );
+    expect(stored.entities.map((record: any) => record.entity_key)).toEqual(['a.md#h1', 'b.md#h1']);
   });
 });

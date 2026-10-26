@@ -9,6 +9,8 @@ type VaultFileAdapter = {
   read?: (path: string) => Promise<string>;
   write?: (path: string, data: string) => Promise<void>;
   mkdir?: (path: string) => Promise<void>;
+  rename?: (path: string, newPath: string) => Promise<void>;
+  remove?: (path: string) => Promise<void>;
 };
 
 type StoredEntity = {
@@ -29,6 +31,10 @@ export class VaultFileDataAdapter<T extends EmbeddingEntity> {
 
   private vaultAdapter: VaultFileAdapter | null = null;
   private storagePath: string | null = null;
+  private saveChain: Promise<void> = Promise.resolve();
+
+  /** Called with the backup path when an unreadable store was set aside and the index starts empty. */
+  onStoreRecovered?: (backupPath: string) => void;
   private records = new Map<string, EntityData>();
 
   constructor(collection: EntityCollection<T>, collection_key: string) {
@@ -51,19 +57,19 @@ export class VaultFileDataAdapter<T extends EmbeddingEntity> {
     const path = this.requireStoragePath();
     this.records.clear();
 
-    if (!adapter.exists || !adapter.read || !(await adapter.exists(path))) {
-      return;
-    }
+    if (!adapter.exists || !adapter.read) return;
+    const tmpPath = `${path}.tmp`;
+    // A crash between remove and rename in writeStore leaves only the temp file.
+    const source = (await adapter.exists(path)) ? path : (await adapter.exists(tmpPath)) ? tmpPath : null;
+    if (!source) return;
 
-    let parsed: StoredCollection;
-    try {
-      parsed = JSON.parse(await adapter.read(path)) as StoredCollection;
-    } catch (error) {
-      // A corrupt store is rebuilt by re-embedding rather than blocking startup.
-      console.warn('[VaultFileDataAdapter] Ignoring unreadable store:', error);
+    const raw = await adapter.read(source);
+    const records = parseStore(raw);
+    if (!records) {
+      await this.setAsideUnreadableStore(path, raw);
       return;
     }
-    for (const record of parsed.entities || []) {
+    for (const record of records) {
       const data = deserializeEntityData(record.data);
       this.records.set(record.entity_key, cloneEntityData(data));
       const entity = this.collection.create_or_update(data);
@@ -74,16 +80,37 @@ export class VaultFileDataAdapter<T extends EmbeddingEntity> {
     }
   }
 
+  private async setAsideUnreadableStore(path: string, raw: string): Promise<void> {
+    const adapter = this.requireVaultAdapter();
+    const backupPath = path.replace(/\.json$/, `.corrupt-${Date.now()}.json`);
+    try {
+      await adapter.write?.(backupPath, raw);
+    } catch (error) {
+      console.warn('[VaultFileDataAdapter] Could not keep a copy of the unreadable store:', error);
+    }
+    // The index is rebuilt by re-embedding rather than blocking startup.
+    this.onStoreRecovered?.(backupPath);
+  }
+
   rebuildVectorIndex(): void {
     // File-backed storage queries directly over the in-memory collection.
   }
 
   save(): Promise<void> {
-    return this.runSave([...this.collection.save_queue], this.collection.consume_deleted_keys(), true);
+    return this.enqueue(() =>
+      this.runSave([...this.collection.save_queue], this.collection.consume_deleted_keys(), true),
+    );
   }
 
   save_batch(entities: T[], deletedKeys: string[] = []): Promise<void> {
-    return this.runSave([...entities], [...deletedKeys], false);
+    return this.enqueue(() => this.runSave([...entities], [...deletedKeys], false));
+  }
+
+  // Saves rewrite the whole store, so an older snapshot must never land after a newer one.
+  private enqueue(task: () => Promise<void>): Promise<void> {
+    const run = this.saveChain.then(task);
+    this.saveChain = run.catch(() => undefined);
+    return run;
   }
 
   load_entity_vector(
@@ -194,7 +221,14 @@ export class VaultFileDataAdapter<T extends EmbeddingEntity> {
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([entity_key, data]) => ({ entity_key, data: serializeEntityData(data) })),
     };
-    await adapter.write(path, JSON.stringify(store));
+    const tmpPath = `${path}.tmp`;
+    await adapter.write(tmpPath, JSON.stringify(store));
+    if (adapter.rename && adapter.remove) {
+      if (adapter.exists && (await adapter.exists(path))) await adapter.remove(path);
+      await adapter.rename(tmpPath, path);
+    } else {
+      await adapter.write(path, JSON.stringify(store));
+    }
   }
 
   private requireVaultAdapter(): VaultFileAdapter {
@@ -209,6 +243,19 @@ export class VaultFileDataAdapter<T extends EmbeddingEntity> {
       throw new Error('[VaultFileDataAdapter] Storage path not initialized');
     }
     return this.storagePath;
+  }
+}
+
+function parseStore(raw: string): StoredEntity[] | null {
+  try {
+    const parsed = JSON.parse(raw) as Partial<StoredCollection> | null;
+    if (!parsed || !Array.isArray(parsed.entities)) return null;
+    return parsed.entities.filter(
+      (record): record is StoredEntity =>
+        typeof record?.entity_key === 'string' && typeof record.data === 'object' && record.data !== null,
+    );
+  } catch {
+    return null;
   }
 }
 
