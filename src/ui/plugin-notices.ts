@@ -13,7 +13,7 @@ export interface PluginNoticesHost {
 }
 
 const BUILTIN_TEMPLATES: Record<string, string> = {
-	notice_muted: 'Notice muted. Undo in settings.',
+	notice_muted: 'Notice muted.',
 };
 
 export class PluginNotices {
@@ -170,7 +170,9 @@ export class PluginNotices {
 			void this.mute(id)
 				.then(() => {
 					this.remove(id);
-					this.show('notice_muted', {}, { timeout: 2000 });
+					this.show('notice_muted', {}, {
+						button: { text: 'Undo', callback: () => void this.unmute(id) },
+					});
 				})
 				.catch((err: unknown) => {
 					console.error(`[${this.prefix}] Failed to mute notice:`, err);

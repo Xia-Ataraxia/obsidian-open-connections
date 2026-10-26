@@ -109,8 +109,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 
 export const NOTICE_CATALOG: NoticeCatalog = {
   notice_muted: {
-    template: 'Notice muted. Undo in settings.',
-    timeout: 2000,
+    template: 'Notice muted.',
+    timeout: 4000,
     immutable: true,
   },
   embedding_progress: {
