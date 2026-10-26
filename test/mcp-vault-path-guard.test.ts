@@ -2,7 +2,8 @@ import { mkdtemp, mkdir, rm, symlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { describe, expect, it } from 'vitest';
-import { resolveVaultNotePath, rejectUnsafeVaultPath } from '../src/mcp/vault-path-guard';
+import { rejectUnsafeVaultPath } from '../src/mcp/vault-path-guard';
+import { resolveVaultNotePath } from '../src/mcp/vault-path-resolve';
 
 describe('MCP standalone vault path guard', () => {
   it('rejects traversal, encoded traversal, absolute paths, and backslash traversal', () => {

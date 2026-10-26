@@ -18,11 +18,7 @@ import type {
 import type { ParsedEmbedRuntimeState } from '../types/embed-runtime';
 import type { EmbeddingBlock } from '../domain/entities/EmbeddingBlock';
 import { getBlockConnections } from '../ui/block-connections';
-import { rejectUnsafeVaultPath, resolveVaultNotePath, UnsafeVaultPathError } from './vault-path-guard';
-
-interface VaultAdapterWithBasePath {
-  getBasePath?: () => string;
-}
+import { rejectUnsafeVaultPath, UnsafeVaultPathError } from './vault-path-guard';
 
 export class PluginMcpContext implements McpContext {
   constructor(private readonly plugin: SmartConnectionsPlugin) {}
@@ -48,19 +44,11 @@ export class PluginMcpContext implements McpContext {
       rejectUnsafeVaultPath(path);
       const file = this.plugin.app.vault.getAbstractFileByPath(path);
       if (!(file instanceof TFile)) return null;
-      const vaultPath = this.getVaultBasePath();
-      if (!vaultPath) return null;
-      await resolveVaultNotePath(vaultPath, file.path);
       return await this.plugin.app.vault.cachedRead(file);
     } catch (error) {
       if (error instanceof UnsafeVaultPathError) return null;
       throw error;
     }
-  }
-
-  private getVaultBasePath(): string | null {
-    const adapter = this.plugin.app.vault.adapter as VaultAdapterWithBasePath | undefined;
-    return typeof adapter?.getBasePath === 'function' ? adapter.getBasePath() : null;
   }
 
   async embedQuery(query: string): Promise<number[]> {

@@ -10,7 +10,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { rmSync } from 'fs';
+import { mkdirSync, rmSync } from 'fs';
 import { randomUUID } from 'crypto';
 
 // node:sqlite requires Node 23+. Skip this entire suite on older runtimes (e.g. CI with Node 20).
@@ -94,6 +94,7 @@ describe.skipIf(!hasNodeSqlite)('NodeSqliteDataAdapter', () => {
   beforeEach(() => {
     tmpDir = join(tmpdir(), `nsq-test-${randomUUID()}`);
     dbPath = join(tmpDir, '.obsidian', 'plugins', 'test-plugin', 'test-plugin.db');
+    mkdirSync(join(tmpDir, '.obsidian', 'plugins', 'test-plugin'), { recursive: true });
     collection = makeCollection();
     adapter = new NodeSqliteDataAdapter(collection, 'smart_blocks', 'test-ns');
     adapter.initVaultContext({ getBasePath: () => tmpDir }, '.obsidian', 'test-plugin');

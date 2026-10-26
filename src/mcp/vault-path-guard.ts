@@ -1,6 +1,4 @@
-import { existsSync } from 'fs';
-import { realpath } from 'fs/promises';
-import { isAbsolute, relative, resolve, sep } from 'path';
+import { isAbsolute } from 'path';
 
 export class UnsafeVaultPathError extends Error {
   constructor(reason: string) {
@@ -13,21 +11,6 @@ export function rejectUnsafeVaultPath(notePath: string): void {
   if (!notePath || notePath.includes('\0')) throw new UnsafeVaultPathError('empty_or_nul');
   if (isAbsolute(notePath)) throw new UnsafeVaultPathError('absolute_path');
   for (const variant of encodedPathVariants(notePath)) rejectTraversalSegments(variant);
-}
-
-export async function resolveVaultNotePath(
-  vaultPath: string,
-  notePath: string,
-): Promise<string | null> {
-  rejectUnsafeVaultPath(notePath);
-  const vaultReal = await realpath(vaultPath);
-  const candidate = resolve(vaultReal, notePath);
-  if (!existsSync(candidate)) return null;
-  const candidateReal = await realpath(candidate);
-  if (!isUnderDirectory(vaultReal, candidateReal)) {
-    throw new UnsafeVaultPathError('symlink_escape');
-  }
-  return candidateReal;
 }
 
 function encodedPathVariants(notePath: string): string[] {
@@ -57,7 +40,3 @@ function rejectTraversalSegments(notePath: string): void {
   }
 }
 
-function isUnderDirectory(parent: string, child: string): boolean {
-  const rel = relative(parent, child);
-  return rel === '' || (!rel.startsWith('..') && !rel.startsWith(sep) && !isAbsolute(rel));
-}
