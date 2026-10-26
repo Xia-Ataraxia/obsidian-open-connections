@@ -48,7 +48,7 @@ function makeCollection(overrides: Record<string, unknown> = {}) {
         return existing;
       }
       const entity = makeEntity(key, data.embeddings?.['test-model']?.vec ?? null);
-      entity.data = { ...entity.data, ...data } as EntityData;
+      entity.data = { ...entity.data, ...data };
       entity.is_unembedded = !entity.data.embeddings?.['test-model'];
       entity._queue_save = true;
       entities.push(entity);

@@ -118,7 +118,7 @@ describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
     const secondColl = createRealEntityCollection('test-model');
     const secondAdapter = new NodeSqliteDataAdapter(secondColl, 'smart_blocks', ns);
     await secondAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
-    await secondAdapter.load();
+    secondAdapter.load();
 
     expect(secondColl.all).toHaveLength(1);
     const lazyEntity = secondColl.all[0];
@@ -134,7 +134,7 @@ describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
     const thirdColl = createRealEntityCollection('test-model');
     const thirdAdapter = new NodeSqliteDataAdapter(thirdColl, 'smart_blocks', ns);
     await thirdAdapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
-    await thirdAdapter.load();
+    thirdAdapter.load();
 
     expect(thirdColl.all).toHaveLength(1);
     expect(thirdColl.all[0].is_unembedded).toBe(false);
