@@ -116,9 +116,15 @@ export abstract class EntityCollection<T extends EmbeddingEntity> {
 
   async process_save_queue(): Promise<void> {
     const queue = this.save_queue;
-    if (queue.length === 0) return;
+    const deletedKeys = this.consume_deleted_keys();
+    if (queue.length === 0 && deletedKeys.length === 0) return;
 
-    await this.data_adapter.save_batch(queue);
+    try {
+      await this.data_adapter.save_batch(queue, deletedKeys);
+    } catch (error) {
+      this.restore_deleted_keys(deletedKeys);
+      throw error;
+    }
   }
 
   async nearest(vec: number[] | Float32Array, filter: SearchFilter = {}): Promise<ConnectionResult[]> {
