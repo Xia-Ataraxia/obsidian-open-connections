@@ -70,20 +70,5 @@ export function viewDefinitions(): SettingGroupItem[] {
       desc: 'Results above this similarity score are highlighted with your accent color',
       control: { type: 'slider', key: 'smart_view_filter.highlight_threshold', defaultValue: 0.8, min: 0.5, max: 0.95, step: 0.05 },
     },
-    {
-      name: 'Show full path',
-      desc: 'Display folder path in result titles',
-      control: { type: 'toggle', key: 'smart_view_filter.show_full_path', defaultValue: false },
-    },
-    {
-      name: 'Render Markdown in preview',
-      desc: 'Render Markdown formatting in hover previews',
-      control: { type: 'toggle', key: 'smart_view_filter.render_markdown', defaultValue: true },
-    },
-    {
-      name: 'Expanded view',
-      desc: 'Show expanded connection details',
-      control: { type: 'toggle', key: 'smart_view_filter.expanded_view', defaultValue: false },
-    },
   ];
 }

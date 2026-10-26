@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatLookupBlockIndicator, formatLookupTitle, splitNoteKey } from '../src/ui/lookup-view-format';
+import { formatLookupBlockIndicator, formatLookupTitle, formatResultHeading, splitNoteKey } from '../src/ui/lookup-view-format';
 
 describe('splitNoteKey', () => {
   it('returns the bare path for a note key', () => {
@@ -22,5 +22,19 @@ describe('lookup row labels', () => {
     expect(formatLookupBlockIndicator('Cooking/Pasta Carbonara.md#Pasta Carbonara#Sauce')).toBe('Sauce');
     expect(formatLookupBlockIndicator('Cooking/Pasta Carbonara.md#Intro#Sauce')).toBe('Intro > Sauce');
     expect(formatLookupBlockIndicator('Cooking/Pasta Carbonara.md')).toBe('');
+    expect(formatLookupBlockIndicator('Cooking/Pasta Carbonara.md#Intro#paragraph-2')).toBe('Intro > Paragraph 2');
+  });
+});
+
+describe('formatResultHeading', () => {
+  it('drops a heading that repeats the note name', () => {
+    expect(formatResultHeading('Espresso.md#Espresso', 'Espresso')).toBe('');
+    expect(formatResultHeading('Bulk/Topic 1.md#Topic 1', 'Topic 1')).toBe('');
+  });
+
+  it('keeps a distinct heading and drops paragraph ids and bare paths', () => {
+    expect(formatResultHeading('Espresso.md#Espresso#Dialing in', 'Espresso')).toBe('Dialing in');
+    expect(formatResultHeading('Espresso.md#paragraph-2', 'Espresso')).toBe('');
+    expect(formatResultHeading('Espresso.md', 'Espresso')).toBe('');
   });
 });

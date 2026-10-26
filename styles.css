@@ -782,41 +782,28 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   display: flex;
 }
 
-/* ─── Filter Chips ─── */
-.osc-lookup-filters {
+/* ─── Toolbar: filter dropdown + meta line ─── */
+.osc-lookup-toolbar {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   padding: 8px 12px 0;
 }
 
-.osc-lookup-chip {
+.osc-lookup-toolbar .dropdown {
   font-size: var(--font-smallest, 11px);
-  padding: 3px 10px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 12px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  height: auto;
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
-.osc-lookup-chip:hover {
-  color: var(--text-normal);
-  border-color: var(--text-muted);
-}
-
-.osc-lookup-chip.osc-lookup-chip--active {
-  color: var(--text-on-accent);
-  border-color: transparent;
-  background: var(--interactive-accent);
-}
-
-/* ─── Meta Line ─── */
 .osc-lookup-meta {
   font-size: var(--font-smallest, 11px);
   color: var(--text-faint);
-  padding: 6px 12px 0;
-  min-height: 20px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ─── Lookup Results ─── */
@@ -829,6 +816,8 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
 /* ─── Result Card ─── */
 .osc-lookup-result {
   display: flex;
+  align-items: baseline;
+  gap: 8px;
   padding: 8px 12px;
   cursor: pointer;
   transition: background-color 0.1s ease, transform 160ms var(--osc-spring);
@@ -854,12 +843,6 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   gap: 2px;
 }
 
-.osc-lookup-result-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .osc-lookup-result-title {
   flex: 1;
   font-size: var(--nav-item-size, 13px);
@@ -871,27 +854,6 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
 
 .osc-lookup-result-title--strong {
   font-weight: 600;
-}
-
-/* Score: the tier is carried by text color alone */
-.osc-lookup-result-score {
-  font-size: var(--font-smallest, 11px);
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-  line-height: 1.4;
-}
-
-.osc-lookup-result-score--high {
-  color: var(--interactive-accent);
-  font-weight: 600;
-}
-
-.osc-lookup-result-score--medium {
-  color: var(--text-muted);
-}
-
-.osc-lookup-result-score--low {
-  color: var(--text-faint);
 }
 
 /* Path breadcrumb & block heading indicator */

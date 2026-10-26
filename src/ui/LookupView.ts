@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, Workspace, debounce, setIcon } from 'obsidian';
+import { DropdownComponent, ItemView, WorkspaceLeaf, Workspace, debounce, setIcon } from 'obsidian';
 import type SmartConnectionsPlugin from '../main';
 import type { ConnectionResult } from '../types/entities';
 import type { LookupFilter } from './lookup-view-format';
@@ -13,7 +13,6 @@ export class LookupView extends ItemView {
   searchInput: HTMLInputElement;
   resultsContainer: HTMLElement;
   activeFilter: LookupFilter = 'all';
-  filterChipsEl: HTMLElement;
   searchMetaEl: HTMLElement;
   lastQuery = '';
   clearBtn: HTMLElement;
@@ -33,9 +32,6 @@ export class LookupView extends ItemView {
 
   private setActiveFilter(filter: LookupFilter): void {
     this.activeFilter = filter;
-    this.filterChipsEl?.querySelectorAll('.osc-lookup-chip').forEach((chip) => {
-      (chip as HTMLElement).toggleClass('osc-lookup-chip--active', (chip as HTMLElement).dataset.filter === filter);
-    });
     if (this.lastQuery) {
       void this.performSearch(this.lastQuery);
     }
@@ -79,21 +75,12 @@ export class LookupView extends ItemView {
     });
     setIcon(this.clearBtn, 'x');
 
-    this.filterChipsEl = this.container.createDiv({ cls: 'osc-lookup-filters' });
-    for (const filter of [
-      { key: 'all' as const, label: 'All' },
-      { key: 'notes' as const, label: 'Notes' },
-      { key: 'blocks' as const, label: 'Blocks' },
-    ]) {
-      const chip = this.filterChipsEl.createEl('button', {
-        text: filter.label,
-        cls: `osc-lookup-chip${filter.key === 'all' ? ' osc-lookup-chip--active' : ''}`,
-        attr: { 'data-filter': filter.key },
-      });
-      this.registerDomEvent(chip, 'click', () => this.setActiveFilter(filter.key));
-    }
-
-    this.searchMetaEl = this.container.createDiv({ cls: 'osc-lookup-meta' });
+    const toolbar = this.container.createDiv({ cls: 'osc-lookup-toolbar' });
+    new DropdownComponent(toolbar)
+      .addOptions({ all: 'All', notes: 'Notes', blocks: 'Blocks' })
+      .setValue(this.activeFilter)
+      .onChange((value) => this.setActiveFilter(value as LookupFilter));
+    this.searchMetaEl = toolbar.createDiv({ cls: 'osc-lookup-meta' });
     this.resultsContainer = this.container.createDiv({ cls: 'osc-lookup-results' });
     registerLookupResultEvents(this);
 

@@ -86,9 +86,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   },
 
   smart_view_filter: {
-    expanded_view: false,
-    render_markdown: true,
-    show_full_path: false,
     highlight_threshold: 0.8,
   },
 
@@ -118,7 +115,7 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     timeout: 0,
   },
   embedding_complete: {
-    template: 'Embedding complete. {{success}} blocks updated.',
+    template: 'Embedding complete. {{success}} {{noun}} updated.',
   },
   embedding_failed: {
     template: 'Embedding failed. Refresh the connections view to retry.',
@@ -178,12 +175,12 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   },
   content_rules_changed: {
     label: 'Content rules changed',
-    template: 'Content rules changed. Re-embedding {{count}} notes…',
+    template: 'Content rules changed. Re-embedding {{count}} {{noun}}…',
     timeout: 4000,
   },
   folder_index_queued: {
     label: 'Folder indexing',
-    template: 'Indexing {{count}} notes in {{folder}}…',
+    template: 'Indexing {{count}} {{noun}} in {{folder}}…',
     timeout: 4000,
   },
   folder_exclusion_reconcile_deferred: {

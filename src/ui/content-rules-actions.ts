@@ -31,7 +31,8 @@ export async function applyContentRulesChange(
       entity.queue_embed?.();
     }
   }
-  plugin.notices?.show?.('content_rules_changed', { count: plugin.source_collection?.size ?? 0 });
+  const count = plugin.source_collection?.size ?? 0;
+  plugin.notices?.show?.('content_rules_changed', { count, noun: count === 1 ? 'note' : 'notes' });
   void plugin.reembedStaleEntities?.('Content rules changed');
   return true;
 }

@@ -141,7 +141,7 @@ export async function runEmbeddingJobNow(
     }
 
     if (stats.outcome === 'completed' && !context.followupQueued) {
-      plugin.notices.show('embedding_complete', { success: stats.success });
+      plugin.notices.show('embedding_complete', { success: stats.success, noun: stats.success === 1 ? 'block' : 'blocks' });
     }
     if (unresolvedAfterRun > 0) {
       plugin.logEmbed('run-stale-remaining', {
