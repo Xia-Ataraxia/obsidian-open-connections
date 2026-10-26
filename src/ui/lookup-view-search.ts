@@ -1,6 +1,6 @@
 import type SmartConnectionsPlugin from '../main';
 import type { ConnectionResult, SearchFilter } from '../types/entities';
-import { searchNearestAcrossCollections } from '../domain/semantic-search';
+import { bestBlockPerSource, searchNearestAcrossCollections } from '../domain/semantic-search';
 import type { LookupFilter } from './lookup-view-format';
 
 type SearchableCollection = {
@@ -38,6 +38,11 @@ export async function searchCollections(
   queryVec: number[],
   limit: number,
 ): Promise<ConnectionResult[]> {
+  // Sources are never embedded (block-only), so notes are ranked by their best block.
+  if (activeFilter === 'notes') {
+    if (!plugin.block_collection) return [];
+    return bestBlockPerSource(await plugin.block_collection.nearest(queryVec, { limit: limit * 3 }), limit);
+  }
   const collections = getActiveCollections(plugin, activeFilter);
   return await searchNearestAcrossCollections(collections, queryVec, limit);
 }

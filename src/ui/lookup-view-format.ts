@@ -16,14 +16,15 @@ export function formatLookupPath(key: string): string {
 }
 
 export function formatLookupBlockIndicator(key: string): string {
-  const hashIndex = key.indexOf('#');
-  return hashIndex === -1 ? '' : key.substring(hashIndex + 1).replace(/#/g, ' > ');
+  const [, ...headings] = key.split('#');
+  // The top heading usually repeats the note title.
+  if (headings[0] === formatLookupTitle(key)) headings.shift();
+  return headings.join(' > ');
 }
 
 export function formatLookupTitle(key: string): string {
-  const parts = key.split('/');
-  const filename = parts.pop() ?? 'Unknown';
-  return filename.replace(/\.md$/, '').replace(/#/g, ' > ');
+  const filename = key.split('#')[0]?.split('/').pop() ?? '';
+  return filename.replace(/\.md$/, '') || 'Unknown';
 }
 
 export function dedupeLookupResults(results: ConnectionResult[], limit: number): ConnectionResult[] {

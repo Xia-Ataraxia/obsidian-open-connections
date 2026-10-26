@@ -787,27 +787,6 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   outline: none;
 }
 
-/* Left accent bar */
-.osc-lookup-result-bar {
-  width: 3px;
-  border-radius: 2px;
-  flex-shrink: 0;
-  margin-right: 10px;
-  align-self: stretch;
-}
-
-.osc-lookup-result-bar--high {
-  background: var(--interactive-accent);
-}
-
-.osc-lookup-result-bar--medium {
-  background: var(--text-muted);
-}
-
-.osc-lookup-result-bar--low {
-  background: var(--background-modifier-border);
-}
-
 /* Content area */
 .osc-lookup-result-body {
   flex: 1;
@@ -836,25 +815,17 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   font-weight: 600;
 }
 
-/* Score pill */
+/* Score: the tier is carried by text color alone */
 .osc-lookup-result-score {
   font-size: var(--font-smallest, 11px);
   font-variant-numeric: tabular-nums;
-  padding: 1px 6px;
-  border-radius: 8px;
   flex-shrink: 0;
   line-height: 1.4;
 }
 
 .osc-lookup-result-score--high {
   color: var(--interactive-accent);
-  background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
   font-weight: 600;
-}
-
-.osc-lookup-result-score--medium,
-.osc-lookup-result-score--low {
-  background: var(--background-secondary);
 }
 
 .osc-lookup-result-score--medium {
