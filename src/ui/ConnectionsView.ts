@@ -100,6 +100,9 @@ export class ConnectionsView extends ItemView {
         void this.renderView(this.lastRenderedPath);
       }
     }));
+    this.registerEvent(this.app.workspace.on('open-connections:settings-changed', ({ key }) => {
+      if (key === 'smart_view_filter.highlight_threshold' && this.lastRenderedPath) void this.renderView(this.lastRenderedPath);
+    }));
     this.registerEvent(this.app.workspace.on('open-connections:embed-progress', () => {
       this.updateProgressBanner();
     }));
