@@ -48,12 +48,16 @@ export function setupStatusBar(plugin: SmartConnectionsPlugin): void {
   refreshStatus(plugin);
 }
 
-function getVaultTags(plugin: SmartConnectionsPlugin): { vaultTag: string; vaultDetail: string } {
+function getVaultTags(plugin: SmartConnectionsPlugin): { vaultTag: string; vaultDetail: string; complete: boolean } {
   const totalBlocks = plugin.block_collection?.effectiveTotal ?? 0;
   const embeddedBlocks = plugin.block_collection?.embeddedCount ?? 0;
   const vaultPercent = totalBlocks > 0 ? Math.round((embeddedBlocks / totalBlocks) * 100) : 0;
   const counts = `${embeddedBlocks.toLocaleString()}/${totalBlocks.toLocaleString()}`;
-  return { vaultTag: `${counts} (${vaultPercent}%)`, vaultDetail: `${counts} blocks (${vaultPercent}%)` };
+  return {
+    vaultTag: `${counts} (${vaultPercent}%)`,
+    vaultDetail: `${counts} blocks (${vaultPercent}%)`,
+    complete: totalBlocks > 0 && embeddedBlocks >= totalBlocks,
+  };
 }
 
 function setStatusIcon(plugin: SmartConnectionsPlugin, icon: string): void {
@@ -98,7 +102,7 @@ export function refreshStatus(plugin: SmartConnectionsPlugin): void {
   const model = getCurrentModelInfo(plugin);
   const modelTag = `${model.adapter}/${model.modelKey}`;
   const ctx = plugin.current_embed_context;
-  const { vaultTag, vaultDetail } = getVaultTags(plugin);
+  const { vaultTag, vaultDetail, complete } = getVaultTags(plugin);
   const runtime = plugin.getEmbedRuntimeState();
 
   if (runtime.serving.kind === 'degraded') {
@@ -119,7 +123,7 @@ Indexed notes remain queryable`,
     case 'idle':
       setStatusIcon(plugin, 'network');
       setStatusTone(plugin, 'idle');
-      plugin.status_msg.setText(`OC: ${vaultTag}`);
+      plugin.status_msg.setText(complete ? 'OC: 100%' : `OC: ${vaultTag}`);
       setStatusTooltip(
         plugin,
         `Open Connections is ready
