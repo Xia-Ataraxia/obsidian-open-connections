@@ -8,6 +8,7 @@ import { EmbeddingEntity } from './EmbeddingEntity';
 import type { BlockData } from '../../types/entities';
 import { getParagraphCoverage } from './block-paragraph-coverage';
 import { truncateEmbedInput } from './embed-input-limit';
+import { applyContentRules } from '../../utils';
 import type { BlockCollection } from './BlockCollection';
 import type { EntityCollection } from './EntityCollection';
 import type { EmbeddingSource } from './EmbeddingSource';
@@ -87,7 +88,12 @@ export class EmbeddingBlock extends EmbeddingEntity {
       content = await this.read();
     }
 
-    this._embed_input = truncateEmbedInput(`${this.breadcrumbs}\n${content}`);
+    const text = applyContentRules(content, this.source?.collection.settings?.content_rules as string | undefined);
+    if (!text.trim()) {
+      this._embed_input = '';
+      return;
+    }
+    this._embed_input = truncateEmbedInput(`${this.breadcrumbs}\n${text}`);
   }
 
   // Getters

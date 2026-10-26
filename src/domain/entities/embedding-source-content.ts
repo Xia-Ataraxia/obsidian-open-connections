@@ -1,4 +1,4 @@
-import { create_hash } from '../../utils';
+import { applyContentRules, create_hash } from '../../utils';
 import type { EmbeddingSource } from './EmbeddingSource';
 import type { TFileShim as TFile } from '../../types/obsidian-shims';
 import { truncateEmbedInput } from './embed-input-limit';
@@ -21,6 +21,12 @@ export async function cacheEmbeddingSourceInput(
     content = await readEmbeddingSource(source);
   }
   if (!content) {
+    source._embed_input = '';
+    return;
+  }
+
+  content = applyContentRules(content, source.collection.settings?.content_rules as string | undefined);
+  if (!content.trim()) {
     source._embed_input = '';
     return;
   }

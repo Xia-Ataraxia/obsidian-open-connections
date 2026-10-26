@@ -6,6 +6,12 @@
 export { average_vectors } from './average-vectors';
 export { cos_sim, cos_sim_f32 } from './cos-sim';
 export { create_hash } from './create-hash';
+export {
+  applyContentRules,
+  CONTENT_RULE_PRESETS,
+  normalizeContentRules,
+  parseContentRules,
+} from './content-rules';
 export { determine_installed_at } from './determine-installed-at';
 export { errorMessage } from './error-message';
 export { DEFAULT_EXCLUDED_FOLDERS, isExcludedPath } from './path-exclusions';

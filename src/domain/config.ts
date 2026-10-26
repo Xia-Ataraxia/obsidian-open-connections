@@ -75,6 +75,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
     excluded_headings: '',
     file_exclusions: 'Untitled',
     folder_exclusions: '',
+    content_rules: '',
   },
 
   smart_blocks: {

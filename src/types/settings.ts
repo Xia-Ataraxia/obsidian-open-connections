@@ -93,6 +93,9 @@ export interface SourceSettings {
 
   /** Folder exclusion patterns (comma-separated) */
   folder_exclusions: string;
+
+  /** Regex rules (one per line) whose matches are stripped from content before embedding */
+  content_rules?: string;
 }
 
 /**
