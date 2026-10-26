@@ -9,11 +9,11 @@ import { getConnectionsResultSourcePath } from './connections-view-result-list';
 
 export function renderPauseButton(view: ConnectionsView, actions: HTMLElement, targetPath: string): void {
   const pauseBtn = actions.createEl('button', {
-    cls: 'plugin-icon-btn',
-    attr: { 'aria-label': view.session.paused ? 'Resume' : 'Pause' },
+    cls: 'clickable-icon',
+    attr: { 'aria-label': view.session.paused ? 'Resume' : 'Pause', 'aria-pressed': String(view.session.paused) },
   });
   setIcon(pauseBtn, view.session.paused ? 'play' : 'pause');
-  if (view.session.paused) pauseBtn.addClass('plugin-icon-btn--active');
+  pauseBtn.toggleClass('is-active', view.session.paused);
 
   listenOnRendered(pauseBtn, 'click', () => {
     view.session.paused = !view.session.paused;
@@ -26,8 +26,9 @@ export function renderPauseButton(view: ConnectionsView, actions: HTMLElement, t
     }
     void saveConnectionsSession(view);
     setIcon(pauseBtn, view.session.paused ? 'play' : 'pause');
-    pauseBtn.toggleClass('plugin-icon-btn--active', view.session.paused);
+    pauseBtn.toggleClass('is-active', view.session.paused);
     pauseBtn.setAttribute('aria-label', view.session.paused ? 'Resume' : 'Pause');
+    pauseBtn.setAttribute('aria-pressed', String(view.session.paused));
   });
 }
 
@@ -38,7 +39,7 @@ export function renderFilterButton(
   results: ConnectionResult[],
 ): void {
   const filterBtn = actions.createEl('button', {
-    cls: `plugin-icon-btn${view.folderFilter ? ' plugin-icon-btn--active' : ''}`,
+    cls: `clickable-icon${view.folderFilter ? ' is-active' : ''}`,
     attr: { 'aria-label': view.folderFilter ? `Filter: ${view.folderFilter}` : 'Filter by folder' },
   });
   setIcon(filterBtn, 'filter');
@@ -98,12 +99,15 @@ export function renderFilterButton(
 
 export function renderRefreshButton(view: ConnectionsView, actions: HTMLElement, targetPath: string): void {
   const refreshBtn = actions.createEl('button', {
-    cls: 'plugin-icon-btn',
+    cls: 'clickable-icon',
     attr: { 'aria-label': 'Refresh' },
   });
   setIcon(refreshBtn, 'refresh-cw');
 
   listenOnRendered(refreshBtn, 'click', () => {
+    if (refreshBtn.hasClass('is-loading')) return;
+    refreshBtn.addClass('is-loading');
+    refreshBtn.setAttribute('aria-busy', 'true');
     void (async () => {
       try {
         const fileBlocks = view.plugin.block_collection?.for_source(targetPath) ?? [];
@@ -112,8 +116,11 @@ export function renderRefreshButton(view: ConnectionsView, actions: HTMLElement,
           await view.plugin.runEmbeddingJob('Connections view refresh');
         }
       } catch {
+        refreshBtn.removeClass('is-loading');
+        refreshBtn.removeAttribute('aria-busy');
         return;
       }
+      // renderView rebuilds the header, which replaces this button and its pending state.
       void view.renderView(targetPath);
     })();
   });

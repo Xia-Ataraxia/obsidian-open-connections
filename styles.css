@@ -33,13 +33,31 @@ body {
 /* Info banner (stale results, model switching) */
 .osc-banner {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--osc-color-warning-bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--osc-color-warning) 25%, transparent);
-  font-size: var(--font-smallest, 11px);
+  flex-direction: column;
+  gap: var(--size-4-1);
+  padding: var(--size-4-2) var(--size-4-3);
+  background: var(--background-secondary);
+  border-top: 1px solid var(--background-modifier-border);
+  font-size: var(--font-ui-smaller);
   color: var(--text-muted);
+  animation: osc-fade-only 200ms ease-out;
+}
+
+.osc-banner--error {
+  background: var(--osc-color-error-bg);
+  color: var(--text-error);
+}
+
+.osc-banner-bar {
+  display: none;
+}
+
+.osc-banner--active .osc-banner-bar {
+  display: block;
+}
+
+.osc-banner-bar .setting-progress-bar-inner {
+  animation: osc-progress-indeterminate 1.5s ease-in-out infinite;
 }
 
 /* Embedding progress banner — single bar with phase-aware messaging */
@@ -200,43 +218,28 @@ body {
   align-items: center;
 }
 
-/* Shared icon button styles kept repo-local in this plugin */
-.plugin-icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border: none;
-  border-radius: var(--radius-s, 4px);
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color 120ms ease, background-color 120ms ease, transform 160ms var(--osc-spring);
+/* Header actions use native .clickable-icon; only press and pending motion live here */
+.osc-header-actions .clickable-icon {
+  transition: transform 160ms var(--osc-spring);
 }
 
-.plugin-icon-btn:active {
+.osc-header-actions .clickable-icon:active {
   transform: scale(0.88);
   transition-duration: 60ms;
+}
+
+.osc-header-actions .clickable-icon.is-loading {
+  cursor: progress;
+}
+
+.osc-header-actions .clickable-icon.is-loading svg {
+  animation: osc-status-spin 900ms linear infinite;
 }
 
 .osc-result-item:active,
 .osc-lookup-result:active {
   transform: scale(0.99);
   transition-duration: 60ms;
-}
-
-.plugin-icon-btn:hover {
-  color: var(--text-normal);
-  background: var(--background-modifier-hover);
-}
-
-.plugin-icon-btn--active {
-  color: var(--interactive-accent);
-}
-
-.plugin-icon-btn svg {
-  width: 16px;
-  height: 16px;
 }
 
 /* ─── Results List ─── */
@@ -632,6 +635,20 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
   color: var(--osc-color-error);
 }
 
+.osc-state--loading .osc-state-icon {
+  color: var(--text-muted);
+}
+
+.osc-state--loading .osc-state-icon svg {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+  animation: osc-status-spin 1.2s linear infinite;
+}
+
+.osc-state--loading .osc-state-text {
+  animation: osc-pulse 2.4s ease-in-out infinite;
+}
+
 /* ═══════════════════════════════════════════════════════
    Smart Lookup View
    ═══════════════════════════════════════════════════════ */
@@ -892,8 +909,13 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
     animation: osc-pulse 2.4s ease-in-out infinite;
   }
 
-  .plugin-icon-btn:active {
+  .osc-header-actions .clickable-icon:active {
     transform: scale(0.96);
+  }
+
+  .osc-header-actions .clickable-icon.is-loading svg,
+  .osc-state--loading .osc-state-icon svg {
+    animation: osc-pulse 2.4s ease-in-out infinite;
   }
 
   .osc-result-item:active,
@@ -901,7 +923,8 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
     transform: scale(0.995);
   }
 
-  .osc-embed-progress--indeterminate .setting-progress-bar-inner {
+  .osc-embed-progress--indeterminate .setting-progress-bar-inner,
+  .osc-banner-bar .setting-progress-bar-inner {
     animation: osc-pulse 2.4s ease-in-out infinite;
   }
 
