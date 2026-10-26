@@ -123,44 +123,56 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     template: 'Embedding failed. See console for details.',
   },
   embedding_provider_limited: {
+    label: 'Embedding provider limit',
     template: 'Embedding stopped: {{adapter}}/{{modelKey}} hit the provider request limit. Wait and retry later, raise API quota, or switch to a local model.',
     timeout: 10000,
   },
   failed_init_embed_model: {
+    label: 'Embedding model failed to initialize',
     template: 'Failed to initialize embedding model',
   },
   failed_download_transformers_model: {
+    label: 'Model assets download failed',
     template: 'Failed to download transformers model assets. Check network/CDN access and retry.',
   },
   failed_download_timeout: {
+    label: 'Model download timed out',
     template: 'Model download timed out. Try a smaller model or increase timeout in settings.',
   },
   failed_download_quota: {
+    label: 'Storage quota exceeded',
     template: 'Browser storage quota exceeded. Clear IndexedDB in DevTools → Application → Storage and retry.',
   },
   failed_download_network: {
+    label: 'Model download network error',
     template: 'Failed to download model files. Check your network connection and retry.',
   },
   failed_download_model_not_found: {
+    label: 'Model not found',
     template: 'Model "{{modelKey}}" not found. Try switching to BGE-micro-v2 (recommended).',
   },
   failed_init_embed_pipeline: {
+    label: 'Embedding pipeline failed to initialize',
     template: 'Failed to initialize embedding pipeline',
   },
   failed_load_collection_data: {
+    label: 'Collection data failed to load',
     template: 'Failed to load collection data',
   },
   reimport_failed: {
     template: 'Re-import failed. See console for details.',
   },
   no_stale_entities: {
+    label: 'Nothing to re-embed',
     template: 'No stale entities to re-embed.',
   },
   folder_exclusion_reconcile_deferred: {
+    label: 'Folder exclusion pending',
     template: 'Folder exclusion changes will apply after the current embedding run finishes.',
     timeout: 9000,
   },
   folder_exclusion_reconcile_applied: {
+    label: 'Folder exclusion applied',
     template: 'Folder exclusion changes applied.',
     timeout: 5000,
   },
@@ -169,26 +181,39 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     timeout: 4000,
   },
   reinitializing_embedding_model: {
+    label: 'Re-initializing embedding model',
     template: 'Re-initializing embedding model...',
   },
   embedding_model_switched: {
     template: 'Embedding model switched.',
   },
   failed_reinitialize_model: {
+    label: 'Model re-initialization failed',
     template: 'Failed to re-initialize model. Check console.',
   },
   mcp_server_started: {
+    label: 'MCP server started',
     template: 'MCP server started at {{url}}',
     timeout: 5000,
   },
   mcp_server_stopped: {
+    label: 'MCP server stopped',
     template: 'MCP server stopped.',
     timeout: 3000,
   },
   mcp_server_failed: {
+    label: 'MCP server failed',
     template: 'Failed to start MCP server: {{error}}',
     timeout: 8000,
   },
 };
+
+/** Settings label for a notice id; unknown ids are humanized so a raw id never reaches the UI. */
+export function noticeLabel(id: string): string {
+  const label = NOTICE_CATALOG[id]?.label;
+  if (label) return label;
+  const words = id.replace(/_+/g, ' ').trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 export type { NoticeCatalog };

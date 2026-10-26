@@ -1,5 +1,6 @@
 import type { SettingGroupItem } from 'obsidian';
 
+import { noticeLabel } from '../domain/config';
 import type { SmartConnectionsPlugin } from './settings-types';
 
 export function noticeDefinitions(plugin: SmartConnectionsPlugin): SettingGroupItem[] {
@@ -23,7 +24,7 @@ export function noticeDefinitions(plugin: SmartConnectionsPlugin): SettingGroupI
   };
 
   const rows = mutedNotices.map((noticeId): SettingGroupItem => ({
-    name: noticeId,
+    name: noticeLabel(noticeId),
     desc: 'Muted',
     searchable: false,
     render: (setting) => {
