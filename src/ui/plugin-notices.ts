@@ -1,4 +1,5 @@
 import { Notice, setIcon } from 'obsidian';
+import { noticeLabel } from '../domain/config';
 import type { NoticeCatalog } from '../types/settings';
 
 export interface NoticeShowOptions {
@@ -145,7 +146,9 @@ export class PluginNotices {
 		const fragment = createFragment();
 		const wrapper = createDiv({ cls: 'plugin-notice' });
 
-		const head = createEl('p', { cls: 'plugin-notice-head', text: `[${this.prefix}]` });
+		const head = createDiv({ cls: 'plugin-notice-head' });
+		head.createSpan({ text: this.prefix });
+		if (!opts.immutable) head.appendChild(this.createMuteButton(id));
 		wrapper.appendChild(head);
 
 		const body = createEl('p', { cls: 'plugin-notice-content', text });
@@ -159,11 +162,6 @@ export class PluginNotices {
 				this.remove(id);
 			});
 			actions.appendChild(btn);
-		}
-
-		if (!opts.immutable) {
-			const muteBtn = this.createMuteButton(id);
-			actions.appendChild(muteBtn);
 		}
 
 		if (actions.childElementCount > 0) {
@@ -182,7 +180,7 @@ export class PluginNotices {
 
 	private createMuteButton(id: string): HTMLButtonElement {
 		const button = createEl('button', { cls: 'plugin-notice-btn plugin-notice-btn--mute', type: 'button' });
-		button.setAttribute('aria-label', `Mute notice: ${id}`);
+		button.setAttribute('aria-label', `Mute "${noticeLabel(id)}" notices`);
 		setIcon(button, 'bell-off');
 		button.addEventListener('click', () => {
 			void this.mute(id)

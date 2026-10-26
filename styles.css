@@ -349,24 +349,30 @@ body {
 .plugin-notice {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--size-4-1);
   min-width: 260px;
   color: inherit;
 }
 
 .plugin-notice-head {
-  margin: 0;
-  font-size: var(--font-smallest, 11px);
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+  min-height: var(--size-4-5);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
   color: inherit;
+  letter-spacing: 0.02em;
+}
+
+.plugin-notice-head > span {
   opacity: 0.6;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .plugin-notice-content {
   margin: 0;
-  font-size: var(--font-ui-small, 13px);
+  font-size: var(--font-ui-small);
   color: inherit;
   white-space: pre-wrap;
 }
@@ -374,35 +380,50 @@ body {
 .plugin-notice-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: var(--size-4-1);
 }
 
-.plugin-notice-btn {
+/* Doubled class outranks Obsidian's `button:not(.clickable-icon)` fill and shadow. */
+.plugin-notice-btn.plugin-notice-btn {
+  height: auto;
   border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  border-radius: var(--radius-s, 6px);
+  border-radius: var(--radius-s);
   background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: none;
   color: inherit;
-  font-size: var(--font-smallest, 11px);
-  padding: 2px 8px;
+  font-size: var(--font-ui-smaller);
+  padding: var(--size-2-1) var(--size-4-2);
   cursor: pointer;
+  transition: background-color 120ms ease, opacity 120ms ease;
 }
 
-.plugin-notice-btn:hover {
+.plugin-notice-btn.plugin-notice-btn:hover {
   background: color-mix(in srgb, currentColor 20%, transparent);
 }
 
-.plugin-notice-btn--mute {
+.plugin-notice-btn.plugin-notice-btn--mute {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: var(--size-4-5);
+  height: var(--size-4-5);
+  margin: calc(var(--size-2-1) * -1) calc(var(--size-2-2) * -1) calc(var(--size-2-1) * -1) 0;
   padding: 0;
+  border-color: transparent;
+  background: transparent;
+  opacity: 0.6;
 }
 
-.plugin-notice-btn--mute svg {
-  width: 14px;
-  height: 14px;
+.plugin-notice-btn.plugin-notice-btn--mute:hover,
+.plugin-notice-btn.plugin-notice-btn--mute:focus-visible {
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  opacity: 1;
+}
+
+.plugin-notice-btn--mute .svg-icon {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
 }
 
 /* ─── Muted Notices Settings ─── */
