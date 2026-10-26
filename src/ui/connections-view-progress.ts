@@ -1,4 +1,4 @@
-import { ProgressBarComponent } from 'obsidian';
+import { ProgressBarComponent, type App } from 'obsidian';
 
 import { invalidateConnectionsCache } from './block-connections';
 import { syncModelDownload } from './connections-model-download';
@@ -22,13 +22,23 @@ function clearConnectionsBanner(view: ConnectionsView): void {
   view.container.querySelectorAll('.osc-banner').forEach((banner) => banner.remove());
 }
 
+// app.setting is not in the public typings; guard it like any optional API.
+function openPluginSettings(app: App, id: string): void {
+  const setting = (app as App & { setting?: { open?: () => void; openTabById?: (tabId: string) => void } }).setting;
+  setting?.open?.();
+  setting?.openTabById?.(id);
+}
+
 // Qualitative by design (b4eae52): Settings owns numeric progress; the view only shows activity.
 export function addConnectionsBanner(view: ConnectionsView, message: string, active = false, tone: 'info' | 'error' = 'info'): void {
   let banner = view.container.querySelector<HTMLElement>('.osc-banner');
   if (!banner || banner !== view.container.lastElementChild) {
     clearConnectionsBanner(view);
     banner = view.container.createDiv({ cls: 'osc-banner', attr: { role: 'status' } });
-    banner.createSpan({ cls: 'osc-banner-text' });
+    const row = banner.createDiv({ cls: 'osc-banner-row' });
+    row.createSpan({ cls: 'osc-banner-text' });
+    const settingsBtn = row.createEl('button', { cls: 'osc-banner-action', text: 'Open settings' });
+    settingsBtn.addEventListener('click', () => openPluginSettings(view.app, view.plugin.manifest.id));
     new ProgressBarComponent(banner.createDiv({ cls: 'osc-banner-bar' })).setValue(30);
   }
   banner.toggleClass('osc-banner--error', tone === 'error');
@@ -71,8 +81,8 @@ export function updateConnectionsProgressBanner(view: ConnectionsView): void {
   let tone: 'info' | 'error' = 'info';
   if (view.plugin.status_state === 'error') {
     message = hasPendingWork
-      ? 'Embedding hit an error; results may be stale. See settings for details.'
-      : 'Embedding hit an error. See settings for details.';
+      ? 'Embedding hit an error; results may be stale.'
+      : 'Embedding hit an error.';
     tone = 'error';
   } else if (modelLoading) {
     message = 'Preparing embedding model…';

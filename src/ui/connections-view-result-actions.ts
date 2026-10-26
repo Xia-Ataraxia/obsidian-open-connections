@@ -105,8 +105,9 @@ export function renderRefreshButton(view: ConnectionsView, actions: HTMLElement,
   setIcon(refreshBtn, 'refresh-cw');
 
   listenOnRendered(refreshBtn, 'click', () => {
-    if (refreshBtn.hasClass('is-loading')) return;
-    refreshBtn.addClass('is-loading');
+    // Not core's is-loading: that adds a sweeping accent bar on top of the spin.
+    if (refreshBtn.hasClass('osc-is-refreshing')) return;
+    refreshBtn.addClass('osc-is-refreshing');
     refreshBtn.setAttribute('aria-busy', 'true');
     void (async () => {
       try {
@@ -116,7 +117,7 @@ export function renderRefreshButton(view: ConnectionsView, actions: HTMLElement,
           await view.plugin.runEmbeddingJob('Connections view refresh');
         }
       } catch {
-        refreshBtn.removeClass('is-loading');
+        refreshBtn.removeClass('osc-is-refreshing');
         refreshBtn.removeAttribute('aria-busy');
         return;
       }
