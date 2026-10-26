@@ -3,7 +3,7 @@ import type SmartConnectionsPlugin from '../main';
 import type { ConnectionResult } from '../types/entities';
 import type { LookupFilter } from './lookup-view-format';
 import { getLookupEntityCount, searchCollections } from './lookup-view-search';
-import { renderLookupResults, showLookupEmpty, showLookupError, showLookupLoading } from './lookup-view-render';
+import { registerLookupResultEvents, renderLookupResults, showLookupEmpty, showLookupError, showLookupLoading } from './lookup-view-render';
 
 export const LOOKUP_VIEW_TYPE = 'open-connections-lookup';
 
@@ -17,6 +17,9 @@ export class LookupView extends ItemView {
   searchMetaEl: HTMLElement;
   lastQuery = '';
   clearBtn: HTMLElement;
+  private searchSeq = 0;
+  private waitingForModel = false;
+  private debouncedSearch = debounce((query: string) => { void this.performSearch(query); }, 500, true);
 
   constructor(leaf: WorkspaceLeaf, plugin: SmartConnectionsPlugin) {
     super(leaf);
@@ -43,6 +46,9 @@ export class LookupView extends ItemView {
   }
 
   private clearSearch(): void {
+    this.debouncedSearch.cancel();
+    this.searchSeq++;
+    this.waitingForModel = false;
     this.searchInput.value = '';
     this.lastQuery = '';
     this.updateClearButton();
@@ -89,15 +95,16 @@ export class LookupView extends ItemView {
 
     this.searchMetaEl = this.container.createDiv({ cls: 'osc-lookup-meta' });
     this.resultsContainer = this.container.createDiv({ cls: 'osc-lookup-results' });
+    registerLookupResultEvents(this);
 
-    const debouncedSearch = debounce((query: string) => this.performSearch(query), 500, true);
     this.registerDomEvent(this.searchInput, 'input', () => {
       this.updateClearButton();
-      debouncedSearch(this.searchInput.value);
+      this.debouncedSearch(this.searchInput.value);
     });
     this.registerDomEvent(this.searchInput, 'keydown', (event) => {
       const keyEvent = event;
       if (keyEvent.key === 'Enter') {
+        this.debouncedSearch.cancel();
         void this.performSearch(this.searchInput.value);
       } else if (keyEvent.key === 'Escape') {
         this.clearSearch();
@@ -108,13 +115,21 @@ export class LookupView extends ItemView {
       this.searchInput.focus();
     });
     this.registerEvent(this.app.workspace.on('open-connections:model-switched', () => this.handleModelSwitched()));
+    this.registerEvent(this.app.workspace.on('open-connections:embed-state-changed', () => {
+      if (this.waitingForModel && this.plugin.embed_ready) void this.performSearch(this.lastQuery);
+    }));
 
     this.showEmpty('Type a query to search your notes semantically');
     this.searchInput.focus();
     return Promise.resolve();
   }
 
-  onClose(): Promise<void> { this.container?.empty(); return Promise.resolve(); }
+  onClose(): Promise<void> {
+    this.debouncedSearch.cancel();
+    this.searchSeq++;
+    this.container?.empty();
+    return Promise.resolve();
+  }
 
   async performSearch(query: string): Promise<void> {
     if (!query.trim()) {
@@ -123,7 +138,10 @@ export class LookupView extends ItemView {
     }
 
     this.lastQuery = query;
-    if (!this.plugin.embed_ready || !this.plugin.embed_adapter) {
+    // Every await below re-checks this so a slower, older search never overwrites a newer one.
+    const seq = ++this.searchSeq;
+    this.waitingForModel = !this.plugin.embed_ready || !this.plugin.embed_adapter;
+    if (this.waitingForModel) {
       this.showLoading('Embedding model is still loading…');
       return;
     }
@@ -140,6 +158,7 @@ export class LookupView extends ItemView {
       const embedResults = typeof searchAdapter.embed_query === 'function'
         ? await searchAdapter.embed_query(query)
         : await searchAdapter.embed_batch([{ _embed_input: query }]);
+      if (seq !== this.searchSeq) return;
       const queryVec = embedResults?.[0]?.vec;
       if (!queryVec || queryVec.length === 0) {
         this.showError('Failed to embed search query.');
@@ -147,8 +166,10 @@ export class LookupView extends ItemView {
       }
 
       const results = await searchCollections(this.plugin, this.activeFilter, queryVec, 20);
+      if (seq !== this.searchSeq) return;
       this.renderResults(query, results, Math.round(performance.now() - startTime));
     } catch (error) {
+      if (seq !== this.searchSeq) return;
       this.showError(`Search failed: ${(error as Error).message}`);
     }
   }
@@ -181,9 +202,7 @@ export class LookupView extends ItemView {
       resultsContainer: this.resultsContainer,
       searchMetaEl: this.searchMetaEl,
       lastQuery: this.lastQuery,
-      registerDomEvent: (el: HTMLElement, type: string, callback: (event: Event) => void) => {
-        this.registerDomEvent(el, type as never, callback as never);
-      },
+      activeFilter: this.activeFilter,
       retrySearch: () => { void this.performSearch(this.lastQuery); },
     };
   }

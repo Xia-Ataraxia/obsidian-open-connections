@@ -3,7 +3,7 @@ import { setIcon } from 'obsidian';
 import type { ConnectionResult } from '../types/entities';
 import type { EmbeddingBlock } from '../domain/entities/EmbeddingBlock';
 import type { ConnectionsView } from './ConnectionsView';
-import { registerConnectionsDomEvent } from './connections-view-dom';
+import { listenOnRendered } from './connections-view-dom';
 import { scoreTierFor } from './lookup-view-format';
 import { showResultContextMenu } from './result-context-menu';
 import { saveConnectionsSession } from './connections-view-session';
@@ -57,10 +57,10 @@ export function renderConnectionsResultList(
       setIcon(pinIcon, 'pin');
     }
 
-    registerConnectionsDomEvent(view, item, 'click', (event) => {
+    listenOnRendered(item, 'click', (event) => {
       void view.openBlockResult(fullPath, lastHeading, event as MouseEvent);
     });
-    registerConnectionsDomEvent(view, item, 'keydown', (event) => {
+    listenOnRendered(item, 'keydown', (event) => {
       const keyEvent = event as KeyboardEvent;
       if (keyEvent.key === 'Enter') {
         void view.openBlockResult(fullPath, lastHeading);
@@ -72,7 +72,7 @@ export function renderConnectionsResultList(
         (item.previousElementSibling as HTMLElement | null)?.focus();
       }
     });
-    registerConnectionsDomEvent(view, item, 'contextmenu', (event) => {
+    listenOnRendered(item, 'contextmenu', (event) => {
       showResultContextMenu(view.app, fullPath, event as MouseEvent, {
         isPinned,
         onPin: () => {
@@ -91,7 +91,7 @@ export function renderConnectionsResultList(
         },
       });
     });
-    registerConnectionsDomEvent(view, item, 'mouseover', (event) => {
+    listenOnRendered(item, 'mouseover', (event) => {
       view.app.workspace.trigger('hover-link', {
         event: event as MouseEvent,
         source: 'open-connections-view',
@@ -101,7 +101,7 @@ export function renderConnectionsResultList(
       });
     });
     item.setAttribute('draggable', 'true');
-    registerConnectionsDomEvent(view, item, 'dragstart', (event) => {
+    listenOnRendered(item, 'dragstart', (event) => {
       (event as DragEvent).dataTransfer?.setData('text/plain', `[[${fullPath.replace(/\.md$/, '')}]]`);
     });
   }
