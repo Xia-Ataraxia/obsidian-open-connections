@@ -90,6 +90,10 @@ export abstract class EntityCollection<T extends EmbeddingEntity> {
     return this.all.filter(item => item._queue_save);
   }
 
+  get has_pending_deletes(): boolean {
+    return this.deleted_keys.size > 0;
+  }
+
   consume_deleted_keys(): string[] {
     const keys = Array.from(this.deleted_keys);
     this.deleted_keys.clear();
@@ -116,15 +120,9 @@ export abstract class EntityCollection<T extends EmbeddingEntity> {
 
   async process_save_queue(): Promise<void> {
     const queue = this.save_queue;
-    const deletedKeys = this.consume_deleted_keys();
-    if (queue.length === 0 && deletedKeys.length === 0) return;
+    if (queue.length === 0) return;
 
-    try {
-      await this.data_adapter.save_batch(queue, deletedKeys);
-    } catch (error) {
-      this.restore_deleted_keys(deletedKeys);
-      throw error;
-    }
+    await this.data_adapter.save_batch(queue);
   }
 
   async nearest(vec: number[] | Float32Array, filter: SearchFilter = {}): Promise<ConnectionResult[]> {

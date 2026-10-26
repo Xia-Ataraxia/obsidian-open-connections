@@ -11,6 +11,7 @@ import { invalidateConnectionsCache } from './block-connections';
 import { collectFolderSources, processNewSourcesChunked } from './collection-processing';
 import { isExcludedPath } from '../utils';
 import { logEmbed, runEmbeddingJobNow } from './embed-orchestrator';
+import { saveCollections } from './embed-collection-persistence';
 
 export function registerFileWatchers(plugin: SmartConnectionsPlugin): void {
   function handleSourceChange(file: TFile): void {
@@ -115,6 +116,8 @@ export function removeSource(plugin: SmartConnectionsPlugin, path: string): void
   plugin.pendingReImportPaths.delete(path);
   plugin.source_collection?.delete(path);
   plugin.block_collection?.delete_source_blocks(path);
+  // A delete queues no save of its own; the debounced re-import flushes it.
+  debounceReImport(plugin);
 }
 
 export function debounceReImport(plugin: SmartConnectionsPlugin): void {
@@ -148,7 +151,12 @@ export async function runReImport(plugin: SmartConnectionsPlugin): Promise<void>
   // Drain pending paths atomically
   const paths = [...plugin.pendingReImportPaths];
   plugin.pendingReImportPaths.clear();
-  if (paths.length === 0) return;
+  if (paths.length === 0) {
+    if (plugin.source_collection.has_pending_deletes || plugin.block_collection?.has_pending_deletes) {
+      await saveCollections(plugin);
+    }
+    return;
+  }
 
   plugin.logger.info(`Re-importing ${paths.length} sources...`);
 

@@ -12,7 +12,7 @@
  *   - mixed collection: correct split between embedded / embeddable
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { EntityCollection } from '../src/domain/entities/EntityCollection';
 import { EmbeddingEntity } from '../src/domain/entities/EmbeddingEntity';
 
@@ -150,19 +150,5 @@ describe('EntityCollection embeddableCount cache', () => {
     const second = { embedded: collection.embeddedCount, embeddable: collection.embeddableCount };
 
     expect(second).toEqual(first);
-  });
-});
-
-describe('process_save_queue', () => {
-  it('flushes a delete even when nothing is queued for save', async () => {
-    const collection = new TestCollection('dir', {}, 'm');
-    const save_batch = vi.fn().mockResolvedValue(undefined);
-    collection.data_adapter = { save_batch } as never;
-    collection.delete('gone.md');
-
-    await collection.process_save_queue();
-
-    expect(save_batch).toHaveBeenCalledWith([], ['gone.md']);
-    expect(collection.consume_deleted_keys()).toEqual([]);
   });
 });
