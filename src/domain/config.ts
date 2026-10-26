@@ -164,6 +164,10 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     template: 'Folder exclusion changes applied.',
     timeout: 5000,
   },
+  hidden_connections_restored: {
+    template: 'Restored {{count}} hidden {{noun}}.',
+    timeout: 4000,
+  },
   reinitializing_embedding_model: {
     template: 'Re-initializing embedding model...',
   },

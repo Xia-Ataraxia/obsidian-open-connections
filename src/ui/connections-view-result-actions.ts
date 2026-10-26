@@ -81,6 +81,10 @@ export function renderFilterButton(
             view.session.hiddenKeys = [];
             void saveConnectionsSession(view);
             void view.renderView(targetPath);
+            view.plugin.notices?.show?.('hidden_connections_restored', {
+              count: hiddenCount,
+              noun: hiddenCount === 1 ? 'connection' : 'connections',
+            });
           }),
       );
     }
