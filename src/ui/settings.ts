@@ -115,7 +115,7 @@ export class SmartConnectionsSettingsTab extends PluginSettingTab {
   }
 
   private async confirmReembed(message: string): Promise<boolean> {
-    return confirmWithModal(this.app, message);
+    return confirmWithModal(this.app, message, { title: 'Re-embed notes', cta: 'Re-embed' });
   }
 
   private async triggerReEmbed(): Promise<void> {

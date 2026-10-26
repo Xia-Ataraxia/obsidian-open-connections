@@ -27,6 +27,7 @@ export function statusDefinitions(
       name: 'Status',
       searchable: false,
       render: (setting) => {
+        setting.settingEl.addClass('osc-status-setting');
         elements.statusRowEl = setting.descEl.createDiv({ cls: 'osc-model-status' });
         elements.statsGridEl = renderStatsGrid(setting.descEl, plugin);
         elements.embedProgress = renderEmbedProgress(setting.descEl, plugin);

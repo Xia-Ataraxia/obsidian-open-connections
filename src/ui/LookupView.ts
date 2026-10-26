@@ -69,7 +69,7 @@ export class LookupView extends ItemView {
     setIcon(searchIconEl, 'search');
     this.searchInput = searchWrapper.createEl('input', {
       type: 'text',
-      placeholder: 'Search notes semantically...',
+      placeholder: 'Search notes semantically…',
       cls: 'osc-lookup-input',
     });
 

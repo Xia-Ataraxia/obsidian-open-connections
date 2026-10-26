@@ -20,7 +20,7 @@ export function knownModelDefinitions(
         for (const model of knownModels) {
           dropdown.addOption(model.value, model.name);
         }
-        dropdown.addOption('__custom__', 'Custom...');
+        dropdown.addOption('__custom__', 'Custom…');
         dropdown.setValue(showCustomInput ? '__custom__' : currentModelKey);
         dropdown.onChange(async (value) => {
           if (value === '__custom__') {

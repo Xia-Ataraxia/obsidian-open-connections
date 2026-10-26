@@ -1,4 +1,5 @@
 import type { ParsedEmbedRuntimeState } from '../types/embed-runtime';
+import type { StatusTone } from './settings-status-pill-render';
 import type { SmartConnectionsPlugin } from './settings-types';
 
 export function getRuntimeState(plugin: SmartConnectionsPlugin): ParsedEmbedRuntimeState | null {
@@ -23,15 +24,15 @@ export function getRunStateLabel(
 export function getRunStateTone(
   status: NonNullable<SmartConnectionsPlugin['status_state']>,
   runtime: ParsedEmbedRuntimeState | null,
-): 'ready' | 'loading' | 'error' {
+): StatusTone {
   if (runtime?.serving.kind === 'degraded') return 'error';
   switch (status) {
     case 'error':
       return 'error';
     case 'embedding':
-      return 'ready';
+      return 'active';
     default:
-      return 'loading';
+      return 'idle';
   }
 }
 

@@ -1,6 +1,7 @@
 import type { SettingGroupItem } from 'obsidian';
 
 import { createMcpAuthToken, parseMcpSettings } from '../mcp/settings';
+import { renderStatusPill } from './settings-status-pill-render';
 import type { SmartConnectionsPlugin } from './settings-types';
 
 export function mcpDefinitions(
@@ -67,6 +68,10 @@ export function mcpDefinitions(
           .addButton((button) => {
             button.setButtonText('Copy').onClick(async () => {
               await navigator.clipboard.writeText(mcpSettings.authToken);
+              button.setIcon('check').setTooltip('Copied');
+              window.setTimeout(() => {
+                button.setButtonText('Copy').setTooltip('');
+              }, 1500);
             });
           })
           .addButton((button) => {
@@ -80,9 +85,12 @@ export function mcpDefinitions(
     },
     {
       name: 'Local server status',
-      desc: mcpServer?.isRunning ? mcpServer.endpointUrl : 'Server stopped',
       searchable: false,
       render: (setting) => {
+        const running = Boolean(mcpServer?.isRunning);
+        const statusEl = setting.descEl.createDiv({ cls: 'osc-model-status' });
+        renderStatusPill(statusEl, 'Server', running ? 'Running' : 'Stopped', running, running ? 'ready' : 'idle');
+        if (running && mcpServer) statusEl.createEl('code', { cls: 'osc-mcp-endpoint', text: mcpServer.endpointUrl });
         setting
           .addButton((button) => {
             button.setButtonText(mcpServer?.isRunning ? 'Restart' : 'Start').onClick(async () => {

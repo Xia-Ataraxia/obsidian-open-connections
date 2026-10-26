@@ -18,12 +18,8 @@ export function renderStatsGrid(
   containerEl: HTMLElement,
   plugin: SmartConnectionsPlugin,
 ): HTMLElement {
-  const { total, embedded, pending, pct } = getStats(plugin);
   const statsGridEl = containerEl.createDiv({ cls: 'osc-stats-grid' });
-  renderStatCard(statsGridEl, 'Total', total.toLocaleString());
-  renderStatCard(statsGridEl, 'Embedded', embedded.toLocaleString(), 'green');
-  renderStatCard(statsGridEl, 'Pending', pending.toLocaleString(), pending > 0 ? 'amber' : undefined);
-  renderStatCard(statsGridEl, 'Progress', `${pct}%`, pct >= 100 ? 'green' : undefined);
+  updateStatsGrid(statsGridEl, plugin);
   return statsGridEl;
 }
 
@@ -33,8 +29,8 @@ export function updateStatsGrid(
 ): void {
   const { total, embedded, pending, pct } = getStats(plugin);
   statsGridEl.empty();
-  renderStatCard(statsGridEl, 'Total', total.toLocaleString());
-  renderStatCard(statsGridEl, 'Embedded', embedded.toLocaleString(), 'green');
-  renderStatCard(statsGridEl, 'Pending', pending.toLocaleString(), pending > 0 ? 'amber' : undefined);
-  renderStatCard(statsGridEl, 'Progress', `${pct}%`, pct >= 100 ? 'green' : undefined);
+  renderStatCard(statsGridEl, 'Notes', total.toLocaleString());
+  renderStatCard(statsGridEl, 'Embedded notes', embedded.toLocaleString(), 'green');
+  renderStatCard(statsGridEl, 'Pending notes', pending.toLocaleString(), pending > 0 ? 'amber' : undefined);
+  renderStatCard(statsGridEl, 'Indexed', `${pct}%`, pct >= 100 ? 'green' : undefined);
 }

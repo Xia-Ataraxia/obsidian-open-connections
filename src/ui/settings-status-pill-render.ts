@@ -1,18 +1,22 @@
+export type StatusTone = 'ready' | 'loading' | 'error' | 'idle' | 'active';
+
 export function renderStatusPill(
   containerEl: HTMLElement,
   label: string,
   value: string,
   active: boolean,
-  tone: 'ready' | 'loading' | 'error' = active ? 'ready' : 'loading',
+  tone: StatusTone = active ? 'ready' : 'loading',
 ): void {
   const pill = containerEl.createDiv({ cls: 'osc-status-pill' });
   const dot = pill.createSpan({ cls: 'osc-status-dot' });
-  const dotClassMap: Record<string, string> = {
+  const dotClassMap: Record<StatusTone, string> = {
     error: 'osc-status-dot--error',
     ready: 'osc-status-dot--ready',
     loading: 'osc-status-dot--loading',
+    idle: 'osc-status-dot--idle',
+    active: 'osc-status-dot--active',
   };
-  dot.addClass(dotClassMap[tone] ?? 'osc-status-dot--loading');
+  dot.addClass(dotClassMap[tone]);
   pill.createSpan({ cls: 'osc-status-text', text: `${label}: ${value}` });
 }
 
