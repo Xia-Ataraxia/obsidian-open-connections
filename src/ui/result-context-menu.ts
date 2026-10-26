@@ -3,7 +3,7 @@
  * @description Shared context menu for result items in ConnectionsView and LookupView
  */
 
-import { Menu, TFile } from 'obsidian';
+import { MarkdownView, Menu, TFile } from 'obsidian';
 import type { App } from 'obsidian';
 
 export interface ConnectionActions {
@@ -45,7 +45,9 @@ export function showResultContextMenu(
       }),
   );
 
-  const target = app.workspace.activeEditor;
+  // activeEditor is null after a restart while the sidebar has focus; fall back to the last main-area note.
+  const recent = app.workspace.getMostRecentLeaf()?.view;
+  const target = app.workspace.activeEditor ?? (recent instanceof MarkdownView ? recent : null);
   if (target?.editor && target.file) {
     const { editor, file: targetFile } = target;
     menu.addSeparator();
