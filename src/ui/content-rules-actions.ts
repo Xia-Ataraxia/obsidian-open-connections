@@ -1,5 +1,3 @@
-import { Notice } from 'obsidian';
-
 import { normalizeContentRules, validContentRulesKey } from '../utils';
 import type { SmartConnectionsPlugin } from './settings-types';
 
@@ -33,7 +31,7 @@ export async function applyContentRulesChange(
       entity.queue_embed?.();
     }
   }
-  new Notice(`Content rules changed · re-embedding ${plugin.source_collection?.size ?? 0} notes`);
+  plugin.notices?.show?.('content_rules_changed', { count: plugin.source_collection?.size ?? 0 });
   void plugin.reembedStaleEntities?.('Content rules changed');
   return true;
 }

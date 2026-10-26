@@ -171,6 +171,19 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     label: 'Nothing to re-embed',
     template: 'Everything is already embedded.',
   },
+  link_copied: {
+    label: 'Link copied',
+    template: 'Link copied.',
+    timeout: 2000,
+  },
+  link_copy_failed: {
+    label: "Couldn't copy link",
+    template: "Couldn't copy the link.",
+  },
+  content_rules_changed: {
+    label: 'Content rules changed',
+    template: 'Content rules changed. Re-embedding {{count}} notes…',
+  },
   folder_exclusion_reconcile_deferred: {
     label: 'Folder exclusion pending',
     template: 'Folder exclusion changes will apply after the current embedding run finishes.',
