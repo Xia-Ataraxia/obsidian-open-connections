@@ -174,8 +174,9 @@ export class LookupView extends ItemView {
     }
   }
 
+  // Also fires on every startup ("Initial embedding setup"); the model is ready by then, so re-run instead of parking a stale message.
   private handleModelSwitched(): void {
-    this.showEmpty('Embedding model changed. Results will refresh after active-model embeddings are ready.');
+    void this.performSearch(this.lastQuery);
   }
 
   renderResults(query: string, results: ConnectionResult[], elapsedMs?: number): void { renderLookupResults(this.createRenderContext(), query, results, elapsedMs); }
