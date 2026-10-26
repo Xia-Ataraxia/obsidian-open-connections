@@ -87,7 +87,8 @@ export class PluginNotices {
 
 	isMuted(id: string): boolean {
 		const store = this.getMutedStore();
-		return store[id] === true;
+		// Action feedback is immutable; a mute saved before it became immutable must not silence it.
+		return store[id] === true && !this.catalog[id]?.immutable;
 	}
 
 	listMuted(): string[] {
