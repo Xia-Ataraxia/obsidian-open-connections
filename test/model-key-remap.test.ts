@@ -10,7 +10,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { rmSync } from 'fs';
+import { mkdirSync, rmSync } from 'fs';
 import { randomUUID } from 'crypto';
 import type { EntityData } from '../src/types/entities';
 import { EmbeddingEntity } from '../src/domain/entities/EmbeddingEntity';
@@ -103,6 +103,7 @@ afterEach(() => {
 describe.skipIf(!hasNodeSqlite)('upsertEmbedding write-asymmetry fix', () => {
   it('is_unembedded stays false after save-with-lazy-vec cycle', async () => {
     tmpDir = join(tmpdir(), `remap-test-${randomUUID()}`);
+    mkdirSync(join(tmpDir, '.obsidian', 'plugins', 'open-connections'), { recursive: true });
     const vaultAdapter = { getBasePath: () => tmpDir };
     const ns = 'open-connections:/tmp/test-lazy-vec:.obsidian/plugins/open-connections/.smart-env';
 

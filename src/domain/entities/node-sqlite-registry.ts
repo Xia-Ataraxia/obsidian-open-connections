@@ -1,5 +1,4 @@
-import { mkdirSync } from 'fs';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import { DatabaseSync } from 'node:sqlite';
 
 import { ensureSchema } from './node-sqlite-helpers';
@@ -36,8 +35,6 @@ export function initNodeSqliteDatabase(
 }
 
 export function initNodeSqliteDatabaseAtPath(absoluteDbPath: string): DatabaseSync {
-  mkdirSync(dirname(absoluteDbPath), { recursive: true });
-
   const existing = openDatabases.get(absoluteDbPath);
   if (existing && !existing.closed) {
     return existing.db;

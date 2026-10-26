@@ -33,7 +33,8 @@ import {
   loadBlockMeta,
   type BlockMeta,
 } from './standalone-db-loader';
-import { resolveVaultNotePath, rejectUnsafeVaultPath } from './vault-path-guard';
+import { rejectUnsafeVaultPath } from './vault-path-guard';
+import { resolveVaultNotePath } from './vault-path-resolve';
 
 // ---------------------------------------------------------------------------
 // Factory
