@@ -8,7 +8,7 @@ import {
   queueUnembeddedEntities,
 } from './collection-loader';
 import { reconcileExcludedFoldersOnStartup } from './folder-exclusion-actions';
-import { debounceReImport, registerFileWatchers } from './file-watcher';
+import { debounceReImport, isSourceFile, registerFileWatchers } from './file-watcher';
 import { beginEmbedProfilingStage, endEmbedProfilingStage, profileAsyncStage } from './embed-profiling-state';
 import { isCurrentLifecycle } from './plugin-lifecycle';
 import { setupStatusBar } from './status-bar';
@@ -131,7 +131,7 @@ export async function initializeEmbedding(
     if (!isCurrentLifecycle(plugin, lifecycle)) return;
     await profileAsyncStage(plugin, 'discovery:process-new-sources', async () => {
       const activeFile = plugin.app.workspace.getActiveFile();
-      await processNewSourcesChunked(plugin, activeFile ? [activeFile] : []);
+      await processNewSourcesChunked(plugin, activeFile && isSourceFile(activeFile, plugin) ? [activeFile] : []);
     });
     if (!isCurrentLifecycle(plugin, lifecycle)) return;
 

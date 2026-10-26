@@ -59,21 +59,22 @@ export function registerFileWatchers(plugin: SmartConnectionsPlugin): void {
     }),
   );
 
-  plugin.registerEvent(
-    plugin.app.workspace.on('active-leaf-change', () => {
-      const activeFile = plugin.app.workspace.getActiveFile();
-      if (!activeFile || !isSourceFile(activeFile, plugin)) return;
-      if (!plugin.source_collection?.get(activeFile.path)) {
-        // Notes are indexed lazily when opened, so unknown notes import right away.
-        plugin.pendingReImportPaths.add(activeFile.path);
-        void enqueueReImportJob(plugin).catch((error: unknown) => {
-          plugin.logger.error('Failed to import opened note', error);
-        });
-        return;
-      }
-      debounceReImport(plugin);
-    }),
-  );
+  const onActiveFile = (): void => {
+    const activeFile = plugin.app.workspace.getActiveFile();
+    if (!activeFile || !isSourceFile(activeFile, plugin)) return;
+    if (!plugin.source_collection?.get(activeFile.path)) {
+      // Notes are indexed lazily when opened, so unknown notes import right away.
+      plugin.pendingReImportPaths.add(activeFile.path);
+      void enqueueReImportJob(plugin).catch((error: unknown) => {
+        plugin.logger.error('Failed to import opened note', error);
+      });
+      return;
+    }
+    debounceReImport(plugin);
+  };
+  plugin.registerEvent(plugin.app.workspace.on('active-leaf-change', onActiveFile));
+  // Opening a note in the same tab changes the file without changing the leaf.
+  plugin.registerEvent(plugin.app.workspace.on('file-open', onActiveFile));
 
   plugin.registerEvent(
     plugin.app.workspace.on('file-menu', (menu, file) => {
