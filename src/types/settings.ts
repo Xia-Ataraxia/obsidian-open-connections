@@ -135,6 +135,8 @@ export interface ViewFilterSettings {
  */
 export interface NoticeDefinition {
   template: string;
+  /** Human-readable name shown in settings; falls back to the humanized id. */
+  label?: string;
   timeout?: number;
   immutable?: boolean;
 }
