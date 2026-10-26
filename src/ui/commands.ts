@@ -14,7 +14,7 @@ interface SmartConnectionsPluginCommands extends Plugin {
   block_collection?: BlockCollection;
   source_collection?: SourceCollection;
   embedding_pipeline?: unknown;
-  notices?: { show(id: string): void };
+  notices?: { show(id: string, params?: Record<string, unknown>): void };
   logger?: { error(msg: string, err?: unknown): void };
   reembedStaleEntities?(reason: string): Promise<number>;
   open_note?(path: string): void;
@@ -113,7 +113,10 @@ export function registerCommands(plugin: Plugin): void {
 
       try {
         const results = await getBlockConnections(blockCollection, activeFile.path, { limit: 20 });
-        if (!results || results.length === 0) return;
+        if (!results || results.length === 0) {
+          p.notices?.show('no_connections_found');
+          return;
+        }
 
         const lines = results.map(r => {
           const score = Math.round((r.score ?? 0) * 100);
@@ -123,7 +126,7 @@ export function registerCommands(plugin: Plugin): void {
 
         const contextText = `## Smart Context: ${activeFile.basename}\n\n${lines.join('\n')}`;
         await navigator.clipboard.writeText(contextText);
-        p.notices?.show('context_copied');
+        p.notices?.show('context_copied', { count: results.length });
       } catch (e: unknown) {
         p.logger?.error('Failed to copy smart context', e);
       }
@@ -139,11 +142,17 @@ export function registerCommands(plugin: Plugin): void {
       if (!activeFile || !p.block_collection) return;
 
       const blockCollection = p.block_collection;
-      if (!blockCollection.for_source(activeFile.path).some((b: EmbeddingBlock) => b.has_embed())) return;
+      if (!blockCollection.for_source(activeFile.path).some((b: EmbeddingBlock) => b.has_embed())) {
+        p.notices?.show('no_embedding_for_context');
+        return;
+      }
 
       try {
         const results = await getBlockConnections(blockCollection, activeFile.path, { limit: 20 });
-        if (!results || results.length === 0) return;
+        if (!results || results.length === 0) {
+          p.notices?.show('no_connections_found');
+          return;
+        }
 
         const randomIdx = Math.floor(Math.random() * results.length);
         const randomResult = results[randomIdx];

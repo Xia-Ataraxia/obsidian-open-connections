@@ -114,14 +114,14 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     immutable: true,
   },
   embedding_progress: {
-    template: '{{adapter}}/{{modelKey}} {{current}}/{{total}} ({{percent}}%)',
+    template: 'Embedding {{current}}/{{total}} blocks ({{percent}}%) with {{modelKey}}',
     timeout: 0,
   },
   embedding_complete: {
-    template: 'Embedding complete! {{success}} notes embedded.',
+    template: 'Embedding complete. {{success}} blocks updated.',
   },
   embedding_failed: {
-    template: 'Embedding failed. See console for details.',
+    template: 'Embedding failed. Refresh the connections view to retry.',
   },
   embedding_provider_limited: {
     label: 'Embedding provider limit',
@@ -142,7 +142,7 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   },
   failed_download_quota: {
     label: 'Storage quota exceeded',
-    template: 'Browser storage quota exceeded. Clear IndexedDB in DevTools → Application → Storage and retry.',
+    template: 'Not enough storage to cache the model. Free up disk space or pick a smaller model, then retry.',
   },
   failed_download_network: {
     label: 'Model download network error',
@@ -161,11 +161,11 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     template: 'Failed to load collection data',
   },
   reimport_failed: {
-    template: 'Re-import failed. See console for details.',
+    template: 'Updating changed notes failed. Refresh the connections view to retry.',
   },
   no_stale_entities: {
     label: 'Nothing to re-embed',
-    template: 'No stale entities to re-embed.',
+    template: 'Everything is already embedded.',
   },
   folder_exclusion_reconcile_deferred: {
     label: 'Folder exclusion pending',
@@ -183,14 +183,28 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   },
   reinitializing_embedding_model: {
     label: 'Re-initializing embedding model',
-    template: 'Re-initializing embedding model...',
+    template: 'Re-initializing embedding model…',
   },
   embedding_model_switched: {
     template: 'Embedding model switched.',
   },
   failed_reinitialize_model: {
     label: 'Model re-initialization failed',
-    template: 'Failed to re-initialize model. Check console.',
+    template: 'Failed to re-initialize the embedding model. Retry or pick another model.',
+  },
+  context_copied: {
+    label: 'Connections copied',
+    template: 'Copied {{count}} connections to the clipboard.',
+    timeout: 3000,
+  },
+  no_embedding_for_context: {
+    label: 'Note not embedded yet',
+    template: 'This note isn\'t embedded yet. Try again when embedding finishes.',
+  },
+  no_connections_found: {
+    label: 'No connections found',
+    template: 'No connections found for this note.',
+    timeout: 3000,
   },
   mcp_server_started: {
     label: 'MCP server started',
@@ -204,7 +218,7 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   },
   mcp_server_failed: {
     label: 'MCP server failed',
-    template: 'Failed to start MCP server: {{error}}',
+    template: "Couldn't start the local server. {{error}}",
     timeout: 8000,
   },
 };
