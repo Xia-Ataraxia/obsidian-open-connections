@@ -78,15 +78,11 @@ export function renderLookupResults(
     });
     item.setCssProps({ '--osc-lookup-delay': `${index * 30}ms` });
 
+    item.createSpan({ text: `${Math.round(score * 100)}%`, cls: `osc-score osc-score--${tier}` });
     const body = item.createDiv({ cls: 'osc-lookup-result-body' });
-    const header = body.createDiv({ cls: 'osc-lookup-result-header' });
-    header.createSpan({
+    body.createSpan({
       text: formatLookupTitle(key),
       cls: `osc-lookup-result-title${tier === 'high' ? ' osc-lookup-result-title--strong' : ''}`,
-    });
-    header.createSpan({
-      text: `${Math.round(score * 100)}%`,
-      cls: `osc-lookup-result-score osc-lookup-result-score--${tier}`,
     });
 
     const path = formatLookupPath(key);

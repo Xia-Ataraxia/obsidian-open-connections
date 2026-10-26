@@ -19,7 +19,14 @@ export function formatLookupBlockIndicator(key: string): string {
   const [, ...headings] = key.split('#');
   // The top heading usually repeats the note title.
   if (headings[0] === formatLookupTitle(key)) headings.shift();
-  return headings.join(' > ');
+  return headings.map((heading) => heading.replace(/^paragraph-(\d+)$/, 'Paragraph $1')).join(' > ');
+}
+
+/** Last heading of a block key, unless it is a paragraph id or just repeats the note name. */
+export function formatResultHeading(blockKey: string, name: string): string {
+  const lastHeading = blockKey.split('#').pop() ?? '';
+  if (!blockKey.includes('#') || lastHeading.startsWith('paragraph-') || lastHeading === name) return '';
+  return lastHeading;
 }
 
 export function formatLookupTitle(key: string): string {

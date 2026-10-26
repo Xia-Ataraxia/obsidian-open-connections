@@ -4,7 +4,7 @@ import type { ConnectionResult } from '../types/entities';
 import type { EmbeddingBlock } from '../domain/entities/EmbeddingBlock';
 import type { ConnectionsView } from './ConnectionsView';
 import { listenOnRendered } from './connections-view-dom';
-import { scoreTierFor } from './lookup-view-format';
+import { formatResultHeading, scoreTierFor } from './lookup-view-format';
 import { showResultContextMenu } from './result-context-menu';
 import { saveConnectionsSession } from './connections-view-session';
 
@@ -47,8 +47,7 @@ export function renderConnectionsResultList(
 
     const content = item.createDiv({ cls: 'osc-result-content' });
     content.createSpan({ text: name, cls: 'osc-result-title' });
-    const headingSuffix = lastHeading && !lastHeading.startsWith('paragraph-') ? lastHeading : '';
-    const fullBreadcrumb = [breadcrumb, headingSuffix].filter(Boolean).join(' > ');
+    const fullBreadcrumb = [breadcrumb, formatResultHeading(blockKey, name)].filter(Boolean).join(' > ');
     if (fullBreadcrumb) {
       content.createSpan({ text: fullBreadcrumb, cls: 'osc-result-breadcrumb' });
     }
