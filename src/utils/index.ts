@@ -10,6 +10,7 @@ export {
   applyContentRules,
   CONTENT_RULE_PRESETS,
   normalizeContentRules,
+  validContentRulesKey,
   parseContentRules,
 } from './content-rules';
 export { determine_installed_at } from './determine-installed-at';

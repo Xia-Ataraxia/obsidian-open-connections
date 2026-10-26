@@ -14,6 +14,10 @@ export const CONTENT_RULE_PRESETS: ContentRulePreset[] = [
   { label: 'Image embeds', pattern: String.raw`!\[\[[^\]\n]+\]\]|!\[[^\]\n]*\]\([^)\n]*\)` },
 ];
 
+const MAX_PATTERN_LENGTH = 300;
+// ponytail: cheap backtracking guard only (pattern and input size caps); no execution timeout, add a worker if pathological patterns still hang
+const MAX_INPUT_LENGTH = 200_000;
+
 export interface ParsedContentRules {
   regexes: RegExp[];
   invalid: string[];
@@ -32,6 +36,10 @@ export function parseContentRules(raw: string | undefined): ParsedContentRules {
   for (const line of source.split('\n')) {
     const pattern = line.trim();
     if (!pattern) continue;
+    if (pattern.length > MAX_PATTERN_LENGTH) {
+      invalid.push(pattern);
+      continue;
+    }
     try {
       regexes.push(new RegExp(pattern, 'gm'));
     } catch {
@@ -44,10 +52,16 @@ export function parseContentRules(raw: string | undefined): ParsedContentRules {
 }
 
 export function applyContentRules(text: string, raw: string | undefined): string {
+  if (text.length > MAX_INPUT_LENGTH) return text;
   const { regexes } = parseContentRules(raw);
   return regexes.reduce((acc, regex) => acc.replace(regex, ''), text);
 }
 
 export function normalizeContentRules(raw: string): string {
   return raw.split('\n').map((line) => line.trim()).filter(Boolean).join('\n');
+}
+
+/** Identity of the rules that actually affect embeddings; invalid lines are ignored. */
+export function validContentRulesKey(raw: string | undefined): string {
+  return parseContentRules(raw).regexes.map((regex) => regex.source).join('\n');
 }

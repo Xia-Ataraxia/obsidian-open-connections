@@ -1,9 +1,10 @@
-import type { SettingGroupItem } from 'obsidian';
+import { debounce, type SettingGroupItem } from 'obsidian';
 
 import { CONTENT_RULE_PRESETS, normalizeContentRules, parseContentRules } from '../utils';
 import { applyContentRulesChange } from './content-rules-actions';
 import type { SettingsConfigAccessor, SmartConnectionsPlugin } from './settings-types';
 
+const SETTLE_MS = 1500;
 const BASE_DESC = 'Regular expressions, one per line. Matching text is removed from notes before embedding.';
 
 function statusText(raw: string): string {
@@ -31,10 +32,13 @@ export function contentRulesDefinition(
         setting.setDesc(statusText(draft));
         inputEl?.toggleClass('osc-rules-invalid', parseContentRules(draft).invalid.length > 0);
       };
-      const commit = async (): Promise<void> => {
-        if (await applyContentRulesChange(plugin, draft)) update();
-      };
+      const commit = debounce(
+        () => void applyContentRulesChange(plugin, draft).then((changed) => changed && update()),
+        SETTLE_MS,
+        true,
+      );
 
+      setting.settingEl.addClass('osc-rules-setting');
       setting.addTextArea((area) => {
         inputEl = area.inputEl;
         areaSetValue = (value) => void area.setValue(value);
@@ -48,7 +52,8 @@ export function contentRulesDefinition(
             draft = value;
             refresh();
           });
-        plugin.registerDomEvent(inputEl, 'blur', () => void commit());
+        plugin.registerDomEvent(inputEl, 'blur', () => commit());
+        refresh();
       });
 
       setting.addDropdown((dropdown) => {
@@ -61,7 +66,7 @@ export function contentRulesDefinition(
           draft = [...lines, pattern].join('\n');
           areaSetValue?.(draft);
           refresh();
-          void commit();
+          commit();
         });
       });
     },

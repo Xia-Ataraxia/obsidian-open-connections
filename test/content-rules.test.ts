@@ -5,6 +5,7 @@ import {
   CONTENT_RULE_PRESETS,
   normalizeContentRules,
   parseContentRules,
+  validContentRulesKey,
 } from '../src/utils/content-rules';
 
 const [aliased, urls, images] = CONTENT_RULE_PRESETS.map((p) => p.pattern);
@@ -46,5 +47,17 @@ describe('embed input', () => {
     const only = make();
     await cacheEmbeddingSourceInput(only as never, 'https://x.io/y');
     expect(only._embed_input).toBe('');
+  });
+});
+
+describe('content rules guards', () => {
+  it('treats over-long patterns as invalid and skips oversized input', () => {
+    expect(parseContentRules('a'.repeat(301)).invalid).toHaveLength(1);
+    const big = 'x'.repeat(200_001);
+    expect(applyContentRules(big, 'x')).toBe(big);
+  });
+
+  it('ignores invalid lines in the valid-rules key', () => {
+    expect(validContentRulesKey('a\n(')).toBe(validContentRulesKey('a'));
   });
 });
