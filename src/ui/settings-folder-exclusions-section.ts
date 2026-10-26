@@ -6,10 +6,7 @@ import {
   removeExcludedFolder,
 } from './folder-exclusion-actions';
 import { FolderExclusionPickerModal } from './folder-exclusion-modal';
-import {
-  listVaultFolderPaths,
-  parseExcludedFolderPaths,
-} from './folder-exclusion-state';
+import { parseExcludedFolderPaths } from './folder-exclusion-state';
 import { confirmWithModal } from './settings-confirm-modal';
 import type { SettingsConfigAccessor, SmartConnectionsPlugin } from './settings-types';
 
@@ -21,8 +18,7 @@ async function handleAddExcludedFolder(
 ): Promise<void> {
   const existing = config.getConfig('smart_sources.folder_exclusions', '');
   const excluded = parseExcludedFolderPaths(existing);
-  const folderPaths = listVaultFolderPaths(app).filter((path) => !excluded.includes(path));
-  const selected = await new FolderExclusionPickerModal(app, folderPaths).openModal();
+  const selected = await new FolderExclusionPickerModal(app, excluded).openModal();
   if (!selected) return;
 
   const activeRun = plugin.getEmbedRuntimeState?.().backfill.kind === 'running';

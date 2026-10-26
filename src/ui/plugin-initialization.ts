@@ -130,7 +130,8 @@ export async function initializeEmbedding(
     await plugin.switchEmbeddingModel('Initial embedding setup');
     if (!isCurrentLifecycle(plugin, lifecycle)) return;
     await profileAsyncStage(plugin, 'discovery:process-new-sources', async () => {
-      await processNewSourcesChunked(plugin);
+      const activeFile = plugin.app.workspace.getActiveFile();
+      await processNewSourcesChunked(plugin, activeFile ? [activeFile] : []);
     });
     if (!isCurrentLifecycle(plugin, lifecycle)) return;
 

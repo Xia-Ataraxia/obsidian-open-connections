@@ -3,7 +3,7 @@
  * @description Composition root for Open Connections.
  */
 
-import { Plugin, TFile } from 'obsidian';
+import { Plugin, TFile, TFolder } from 'obsidian';
 import type { EmbedModelAdapter } from './types/models';
 import type { EmbedQueueStats, EmbeddingPipeline } from './domain/embedding-pipeline';
 import type { BlockCollection, SourceCollection } from './domain/entities';
@@ -45,6 +45,7 @@ import {
 } from './ui/embed-orchestrator';
 import {
   debounceReImport as _debounceReImport,
+  indexFolder as _indexFolder,
   isSourceFile as _isSourceFile,
   queueSourceReImport as _queueSourceReImport,
   registerFileWatchers as _registerFileWatchers,
@@ -187,7 +188,8 @@ export default class SmartConnectionsPlugin extends Plugin {
   initCollections(): Promise<void> { return _initCollections(this); }
   loadCollections(): Promise<void> { return _loadCollections(this); }
   detectStaleSourcesOnStartup(): Promise<number> { return _detectStaleSourcesOnStartup(this); }
-  processNewSourcesChunked(): Promise<void> { return _processNewSourcesChunked(this); }
+  processNewSourcesChunked(files: TFile[]): Promise<void> { return _processNewSourcesChunked(this, files); }
+  indexFolder(folder: TFolder): Promise<void> { return _indexFolder(this, folder); }
   queueUnembeddedEntities(): number { return _queueUnembeddedEntities(this); }
   reembedStaleEntities(reason: string = 'Manual re-embed'): Promise<number> { return _reembedStaleEntities(this, reason); }
   switchEmbeddingModel(reason: string = 'Embedding model switch'): Promise<void> { return _switchEmbeddingModel(this, reason); }

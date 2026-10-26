@@ -14,10 +14,10 @@ export interface ConnectionActions {
 
 /**
  * Show a context menu for a result item with standard actions:
- * open in new tab, open to the right, copy link, pin/hide.
+ * open in new tab, open to the right, insert link, pin/hide.
  */
 export function showResultContextMenu(
-  plugin: { app: App; notices?: { show?: (id: string) => unknown } },
+  plugin: { app: App },
   fullPath: string,
   event: MouseEvent,
   actions?: ConnectionActions,
@@ -45,22 +45,20 @@ export function showResultContextMenu(
       }),
   );
 
-  menu.addSeparator();
-
-  menu.addItem((i) =>
-    i
-      .setTitle('Copy link')
-      .setIcon('link')
-      .onClick(() => {
-        const file = app.vault.getAbstractFileByPath(fullPath);
-        if (!(file instanceof TFile)) return;
-        const link = app.fileManager.generateMarkdownLink(file, app.workspace.getActiveFile()?.path ?? '');
-        navigator.clipboard.writeText(link).then(
-          () => plugin.notices?.show?.('link_copied'),
-          () => plugin.notices?.show?.('link_copy_failed'),
-        );
-      }),
-  );
+  const target = app.workspace.activeEditor;
+  if (target?.editor && target.file) {
+    const { editor, file: targetFile } = target;
+    menu.addSeparator();
+    menu.addItem((i) =>
+      i
+        .setTitle('Insert link')
+        .setIcon('link')
+        .onClick(() => {
+          const file = app.vault.getFileByPath(fullPath);
+          if (file) editor.replaceSelection(app.fileManager.generateMarkdownLink(file, targetFile.path));
+        }),
+    );
+  }
 
   if (actions) {
     menu.addSeparator();

@@ -27,7 +27,6 @@ export interface TFileShim {
 
 /** Subset of Obsidian's Vault used by domain entities */
 export interface VaultShim {
-  getMarkdownFiles(): TFileShim[];
   cachedRead(file: TFileShim): Promise<string>;
   getAbstractFileByPath(path: string): TFileShim | null;
 }

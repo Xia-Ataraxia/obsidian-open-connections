@@ -64,15 +64,7 @@ export function mcpDefinitions(
           .addText((text) => {
             text.setValue(mcpSettings.authToken);
             text.inputEl.readOnly = true;
-          })
-          .addButton((button) => {
-            button.setButtonText('Copy').onClick(async () => {
-              await navigator.clipboard.writeText(mcpSettings.authToken);
-              button.setIcon('check').setTooltip('Copied');
-              window.setTimeout(() => {
-                button.setButtonText('Copy').setTooltip('');
-              }, 1500);
-            });
+            text.inputEl.addEventListener('focus', () => text.inputEl.select());
           })
           .addButton((button) => {
             button.setButtonText('Regenerate').onClick(async () => {

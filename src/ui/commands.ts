@@ -97,12 +97,12 @@ export function registerCommands(plugin: Plugin): void {
     },
   });
 
-  // Copy connections as Smart Context
+  // Insert connections as Smart Context at the cursor
   plugin.addCommand({
-    id: 'copy-smart-context',
-    name: 'Copy connections as smart context',
-    callback: async () => {
-      const activeFile = plugin.app.workspace.getActiveFile();
+    id: 'insert-smart-context',
+    name: 'Insert connections as smart context',
+    editorCallback: async (editor, ctx) => {
+      const activeFile = ctx.file;
       if (!activeFile || !p.block_collection) return;
 
       const blockCollection = p.block_collection;
@@ -125,11 +125,9 @@ export function registerCommands(plugin: Plugin): void {
           return `- [[${sourcePath}]] (${score}%)`;
         });
 
-        const contextText = `## Smart Context: ${activeFile.basename}\n\n${lines.join('\n')}`;
-        await navigator.clipboard.writeText(contextText);
-        p.notices?.show('context_copied', { count: results.length });
+        editor.replaceSelection(`## Smart Context: ${activeFile.basename}\n\n${lines.join('\n')}\n`);
       } catch (e: unknown) {
-        p.logger?.error('Failed to copy smart context', e);
+        p.logger?.error('Failed to insert smart context', e);
       }
     },
   });

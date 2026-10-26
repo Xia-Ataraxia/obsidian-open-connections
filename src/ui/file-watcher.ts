@@ -5,9 +5,10 @@
  *              and processed via the kernel job queue for serialization.
  */
 
-import { TFile } from 'obsidian';
+import { TFile, TFolder } from 'obsidian';
 import type SmartConnectionsPlugin from '../main';
 import { invalidateConnectionsCache } from './block-connections';
+import { collectFolderSources, processNewSourcesChunked } from './collection-processing';
 import { isExcludedPath } from '../utils';
 import { logEmbed, runEmbeddingJobNow } from './embed-orchestrator';
 
@@ -62,9 +63,36 @@ export function registerFileWatchers(plugin: SmartConnectionsPlugin): void {
     plugin.app.workspace.on('active-leaf-change', () => {
       const activeFile = plugin.app.workspace.getActiveFile();
       if (!activeFile || !isSourceFile(activeFile, plugin)) return;
+      if (!plugin.source_collection?.get(activeFile.path)) {
+        // Notes are indexed lazily when opened, so unknown notes import right away.
+        plugin.pendingReImportPaths.add(activeFile.path);
+        void enqueueReImportJob(plugin).catch((error: unknown) => {
+          plugin.logger.error('Failed to import opened note', error);
+        });
+        return;
+      }
       debounceReImport(plugin);
     }),
   );
+
+  plugin.registerEvent(
+    plugin.app.workspace.on('file-menu', (menu, file) => {
+      if (!(file instanceof TFolder) || file.isRoot()) return;
+      menu.addItem((item) =>
+        item
+          .setTitle('Index notes for connections')
+          .setIcon('network')
+          .onClick(() => void indexFolder(plugin, file)),
+      );
+    }),
+  );
+}
+
+export async function indexFolder(plugin: SmartConnectionsPlugin, folder: TFolder): Promise<void> {
+  const files = collectFolderSources(folder).filter((file) => isSourceFile(file, plugin));
+  plugin.notices.show('folder_index_queued', { count: files.length, folder: folder.isRoot() ? plugin.app.vault.getName() : folder.path });
+  // Not wrapped in a kernel job: it enqueues its own embedding run and would wait on itself.
+  await processNewSourcesChunked(plugin, files);
 }
 
 const SUPPORTED_EXTENSIONS = new Set(['md', 'txt']);

@@ -11,7 +11,7 @@ export type ViewState =
   | { type: 'pending_import'; path: string }
   | { type: 'note_too_short' }
   | { type: 'embedding_in_progress'; path: string }
-  | { type: 'no_connections' }
+  | { type: 'no_connections'; path: string }
   | { type: 'results'; path: string; results: ConnectionResult[] };
 
 const EMBED_ERROR_MSG = 'Embedding model failed to initialize. Check Open Connections settings.';
@@ -38,7 +38,7 @@ export async function deriveConnectionsViewState(
   if (embedded.length > 0) {
     const results = await reader.getConnectionsForSource(targetPath, 50);
     return results.length === 0
-      ? { type: 'no_connections' }
+      ? { type: 'no_connections', path: targetPath }
       : { type: 'results', path: targetPath, results: [...results] };
   }
 
@@ -96,7 +96,7 @@ Last error: ${state.error}` : EMBED_DEGRADED_MSG);
       view.showLoading('Embedding this note… Connections appear when ready.');
       return;
     case 'no_connections':
-      view.showEmpty('No related notes yet', { hint: 'Connections appear as more of your vault is embedded.' });
+      showNoConnections(view, state.path);
       return;
     case 'results':
       view.renderResults(state.path, state.results);
@@ -113,4 +113,20 @@ export function scheduleConnectionsRetry(view: ConnectionsView, gen: number): bo
     }, 150);
   }
   return true;
+}
+
+function showNoConnections(view: ConnectionsView, path: string): void {
+  const folder = view.app.vault.getFileByPath(path)?.parent;
+  view.showEmpty('No related notes yet', {
+    hint: 'Index the notes around this one, or right-click any folder and choose Index notes for connections.',
+    action: folder
+      ? {
+        label: 'Index this folder',
+        run: async () => {
+          await view.plugin.indexFolder(folder);
+          void view.renderView();
+        },
+      }
+      : null,
+  });
 }
