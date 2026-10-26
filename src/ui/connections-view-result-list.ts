@@ -73,7 +73,7 @@ export function renderConnectionsResultList(
       }
     });
     listenOnRendered(item, 'contextmenu', (event) => {
-      showResultContextMenu(view.app, fullPath, event as MouseEvent, {
+      showResultContextMenu(view.plugin, fullPath, event as MouseEvent, {
         isPinned,
         onPin: () => {
           if (isPinned) {

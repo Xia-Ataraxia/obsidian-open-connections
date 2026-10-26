@@ -17,11 +17,12 @@ export interface ConnectionActions {
  * open in new tab, open to the right, copy link, pin/hide.
  */
 export function showResultContextMenu(
-  app: App,
+  plugin: { app: App; notices?: { show?: (id: string) => unknown } },
   fullPath: string,
   event: MouseEvent,
   actions?: ConnectionActions,
 ): void {
+  const { app } = plugin;
   const menu = new Menu();
 
   menu.addItem((i) =>
@@ -51,9 +52,13 @@ export function showResultContextMenu(
       .setTitle('Copy link')
       .setIcon('link')
       .onClick(() => {
-        navigator.clipboard
-          .writeText(`[[${fullPath.replace(/\.md$/, '')}]]`)
-          .catch((_err: unknown) => { /* clipboard write failure — no logger available at this scope */ });
+        const file = app.vault.getAbstractFileByPath(fullPath);
+        if (!(file instanceof TFile)) return;
+        const link = app.fileManager.generateMarkdownLink(file, app.workspace.getActiveFile()?.path ?? '');
+        navigator.clipboard.writeText(link).then(
+          () => plugin.notices?.show?.('link_copied'),
+          () => plugin.notices?.show?.('link_copy_failed'),
+        );
       }),
   );
 

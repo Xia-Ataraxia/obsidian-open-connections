@@ -1,4 +1,4 @@
-import { Notice, type SettingGroupItem } from 'obsidian';
+import type { SettingGroupItem } from 'obsidian';
 
 import type { ConfigAccessor } from './settings-model-picker-shared';
 import { embedAdapterRegistry } from '../domain/embed-model';
@@ -43,7 +43,6 @@ async function validateApiKey(
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     setValidationStatus(statusEl, `Error: ${message}`, 'osc-api-validation-error');
-    new Notice(`API key validation failed: ${message}`);
   }
 }
 

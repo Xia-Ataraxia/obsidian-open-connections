@@ -1,5 +1,3 @@
-import { Notice } from 'obsidian';
-
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export class PluginLogger {
@@ -24,11 +22,6 @@ export class PluginLogger {
 	error(message: string, error?: unknown): void {
 		const detail = this.formatError(error);
 		console.error(`[${this.prefix}] error | ${message}${detail}`);
-	}
-
-	noticeError(message: string, error?: unknown): void {
-		this.error(message, error);
-		new Notice(`[${this.prefix}] ${message}`);
 	}
 
 	private formatError(error: unknown): string {

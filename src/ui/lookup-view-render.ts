@@ -128,7 +128,7 @@ export function registerLookupResultEvents(view: LookupResultHost): void {
   });
   view.registerDomEvent(container, 'contextmenu', (event) => {
     const item = resultFor(event);
-    if (item) showResultContextMenu(view.app, pathOf(item), event);
+    if (item) showResultContextMenu(view.plugin, pathOf(item), event);
   });
   view.registerDomEvent(container, 'mouseover', (event) => {
     const item = resultFor(event);

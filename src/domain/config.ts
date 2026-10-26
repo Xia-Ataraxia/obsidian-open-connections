@@ -109,8 +109,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 
 export const NOTICE_CATALOG: NoticeCatalog = {
   notice_muted: {
-    template: 'Notice muted. Undo in settings.',
-    timeout: 2000,
+    template: 'Notice muted.',
+    timeout: 4000,
     immutable: true,
   },
   embedding_progress: {
@@ -163,9 +163,26 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   reimport_failed: {
     template: 'Updating changed notes failed. Refresh the connections view to retry.',
   },
+  cache_cleared: {
+    label: 'Embedding cache cleared',
+    template: 'Embedding cache cleared. Re-embedding all notes…',
+  },
   no_stale_entities: {
     label: 'Nothing to re-embed',
     template: 'Everything is already embedded.',
+  },
+  link_copied: {
+    label: 'Link copied',
+    template: 'Link copied.',
+    timeout: 2000,
+  },
+  link_copy_failed: {
+    label: "Couldn't copy link",
+    template: "Couldn't copy the link.",
+  },
+  content_rules_changed: {
+    label: 'Content rules changed',
+    template: 'Content rules changed. Re-embedding {{count}} notes…',
   },
   folder_exclusion_reconcile_deferred: {
     label: 'Folder exclusion pending',

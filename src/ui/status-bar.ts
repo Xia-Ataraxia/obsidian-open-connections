@@ -3,7 +3,7 @@
  * @description Status bar setup, rendering, and click handling for Open Connections
  */
 
-import { setIcon } from 'obsidian';
+import { setIcon, setTooltip } from 'obsidian';
 import type SmartConnectionsPlugin from '../main';
 import { getCurrentModelInfo } from './embed-orchestrator';
 import { ConnectionsView } from './ConnectionsView';
@@ -48,11 +48,12 @@ export function setupStatusBar(plugin: SmartConnectionsPlugin): void {
   refreshStatus(plugin);
 }
 
-function getVaultTag(plugin: SmartConnectionsPlugin): string {
+function getVaultTags(plugin: SmartConnectionsPlugin): { vaultTag: string; vaultDetail: string } {
   const totalBlocks = plugin.block_collection?.effectiveTotal ?? 0;
   const embeddedBlocks = plugin.block_collection?.embeddedCount ?? 0;
   const vaultPercent = totalBlocks > 0 ? Math.round((embeddedBlocks / totalBlocks) * 100) : 0;
-  return `${embeddedBlocks}/${totalBlocks} (${vaultPercent}%)`;
+  const counts = `${embeddedBlocks.toLocaleString()}/${totalBlocks.toLocaleString()}`;
+  return { vaultTag: `${counts} (${vaultPercent}%)`, vaultDetail: `${counts} blocks (${vaultPercent}%)` };
 }
 
 function setStatusIcon(plugin: SmartConnectionsPlugin, icon: string): void {
@@ -61,8 +62,8 @@ function setStatusIcon(plugin: SmartConnectionsPlugin, icon: string): void {
   cachedIcon = icon;
 }
 
-function setStatusLabel(plugin: SmartConnectionsPlugin, label: string): void {
-  plugin.status_container?.setAttribute('aria-label', label);
+function setStatusTooltip(plugin: SmartConnectionsPlugin, text: string): void {
+  if (plugin.status_container) setTooltip(plugin.status_container, text, { placement: 'top' });
 }
 
 type StatusTone = 'idle' | 'embedding' | 'paused' | 'error';
@@ -85,34 +86,32 @@ function setStatusTone(plugin: SmartConnectionsPlugin, tone: StatusTone, percent
  */
 export function refreshStatus(plugin: SmartConnectionsPlugin): void {
   if (!plugin.status_msg || !plugin.status_container) return;
-  plugin.status_container.removeAttribute('aria-label');
 
   if (!plugin.block_collection) {
     setStatusIcon(plugin, 'network');
     setStatusTone(plugin, 'idle');
     plugin.status_msg.setText('Loading…');
-    plugin.status_container.setAttribute('title', 'Open connections is loading…');
+    setStatusTooltip(plugin, 'Open Connections is loading…');
     return;
   }
 
   const model = getCurrentModelInfo(plugin);
   const modelTag = `${model.adapter}/${model.modelKey}`;
   const ctx = plugin.current_embed_context;
-  const vaultTag = getVaultTag(plugin);
+  const { vaultTag, vaultDetail } = getVaultTags(plugin);
   const runtime = plugin.getEmbedRuntimeState();
 
   if (runtime.serving.kind === 'degraded') {
     setStatusIcon(plugin, 'rotate-cw');
     setStatusTone(plugin, 'error');
     plugin.status_msg.setText(`OC: ${vaultTag} · Retry`);
-    plugin.status_container.setAttribute(
-      'title',
+    setStatusTooltip(
+      plugin,
       `Indexing stopped after a crash. Click to retry.
-Progress: ${vaultTag}
+Progress: ${vaultDetail}
 Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}
 Indexed notes remain queryable`,
     );
-    setStatusLabel(plugin, `Open Connections embedding stopped. ${vaultTag} embedded. Activate to retry.`);
     return;
   }
 
@@ -121,10 +120,10 @@ Indexed notes remain queryable`,
       setStatusIcon(plugin, 'network');
       setStatusTone(plugin, 'idle');
       plugin.status_msg.setText(`OC: ${vaultTag}`);
-      plugin.status_container.setAttribute(
-        'title',
+      setStatusTooltip(
+        plugin,
         `Open Connections is ready
-Embedded: ${vaultTag}
+Embedded: ${vaultDetail}
 Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}`,
       );
       break;
@@ -133,7 +132,7 @@ Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}`,
         setStatusIcon(plugin, 'pause');
         setStatusTone(plugin, 'paused');
         plugin.status_msg.setText(`OC: paused ${vaultTag}`);
-        plugin.status_container.setAttribute('title', `Embedding paused\nProgress: ${vaultTag}\nClick to resume`);
+        setStatusTooltip(plugin, `Embedding paused\nProgress: ${vaultDetail}\nClick to resume`);
         break;
       }
       setStatusIcon(plugin, 'loader');
@@ -143,12 +142,11 @@ Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}`,
       setStatusTone(plugin, 'embedding', runPercent);
       plugin.status_msg.setText(`OC: ${runCurrent}/${runTotal} (${runPercent}%)`);
       const currentNote = ctx?.currentSourcePath ?? '-';
-      plugin.status_container.setAttribute(
-        'title',
+      setStatusTooltip(
+        plugin,
         `Embedding in progress
-Run: #${ctx?.runId ?? '-'}
-Run: ${runCurrent}/${runTotal} (${runPercent}%)
-Vault: ${vaultTag}
+Run #${ctx?.runId ?? '-'}: ${runCurrent}/${runTotal} (${runPercent}%)
+Vault: ${vaultDetail}
 Model: ${modelTag}${model.dims ? ` (${model.dims}d)` : ''}
 Current: ${currentNote}`,
       );
@@ -159,13 +157,12 @@ Current: ${currentNote}`,
       setStatusIcon(plugin, retryable ? 'rotate-cw' : 'alert-triangle');
       setStatusTone(plugin, 'error');
       plugin.status_msg.setText(retryable ? `OC: ${vaultTag} · Retry` : `OC: ${vaultTag}`);
-      plugin.status_container.setAttribute(
-        'title',
+      setStatusTooltip(
+        plugin,
         `Indexing stopped: the embedding model is unavailable.
-Progress: ${vaultTag}
+Progress: ${vaultDetail}
 ${retryable ? 'Click to retry.' : 'Click to open settings.'}`,
       );
-      setStatusLabel(plugin, `Open Connections embedding model unavailable. ${retryable ? 'Activate to retry.' : 'Activate to open settings.'}`);
       break;
     }
   }
