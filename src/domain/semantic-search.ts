@@ -92,11 +92,20 @@ export async function getSourceConnections(
     (result.item as EmbeddingBlock).evictVec?.();
   }
 
+  return bestBlockPerSource(raw, limit, filePath);
+}
+
+/** Keep the highest-scoring block per source note — note-level results under block-only embedding. */
+export function bestBlockPerSource(
+  raw: ConnectionResult[],
+  limit: number,
+  skipPath?: string,
+): ConnectionResult[] {
   const seen = new Map<string, ConnectionResult>();
   for (const result of raw) {
     const block = result.item as EmbeddingBlock;
     const sourcePath = block.source_key ?? block.key.split('#')[0];
-    if (!sourcePath || sourcePath === filePath) continue;
+    if (!sourcePath || sourcePath === skipPath) continue;
     const existing = seen.get(sourcePath);
     if (!existing || (result.score ?? 0) > (existing.score ?? 0)) {
       seen.set(sourcePath, result);
