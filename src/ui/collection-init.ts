@@ -39,7 +39,7 @@ export async function initCollections(plugin: SmartConnectionsPlugin): Promise<v
     const pluginId = plugin.manifest.id;
     const useFileStore = (): void => {
       const onStoreRecovered = (file: string): void => {
-        plugin.notices?.show('index_store_recovered', { file });
+        plugin.notices?.show('index_store_recovered', { file: file.split('/').pop() });
       };
       const sourceStore = new VaultFileDataAdapter(sources, 'smart_sources');
       const blockStore = new VaultFileDataAdapter(blocks, 'smart_blocks');

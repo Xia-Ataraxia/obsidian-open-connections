@@ -170,7 +170,7 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   },
   index_store_recovered: {
     label: 'Index rebuilt',
-    template: 'The saved index could not be read, so notes are being re-embedded. A copy was kept at {{file}}.',
+    template: 'The saved index could not be read and will rebuild as you open notes. A copy was kept in the plugin folder as {{file}}.',
   },
   no_stale_entities: {
     label: 'Nothing to re-embed',
