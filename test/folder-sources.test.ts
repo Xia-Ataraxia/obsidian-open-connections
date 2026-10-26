@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('obsidian', () => {
   class TFile { constructor(public path: string, public extension: string) {} }
-  class TFolder { constructor(public path: string, public children: unknown[]) {} }
+  class TFolder {
+    constructor(public path: string, public children: unknown[]) {}
+    isRoot() { return this.path === '/'; }
+  }
   return { TFile, TFolder };
 });
 
@@ -17,5 +20,10 @@ describe('collectFolderSources', () => {
   it('walks only the given folder and keeps md/txt notes', () => {
     const picked = folder('a', [file('a/one.md'), file('a/img.png'), folder('a/b', [file('a/b/two.txt')])]);
     expect(collectFolderSources(picked).map((f) => f.path)).toEqual(['a/one.md', 'a/b/two.txt']);
+  });
+
+  it('never walks below the vault root', () => {
+    const root = folder('/', [file('top.md'), folder('a', [file('a/one.md')])]);
+    expect(collectFolderSources(root).map((f) => f.path)).toEqual(['top.md']);
   });
 });

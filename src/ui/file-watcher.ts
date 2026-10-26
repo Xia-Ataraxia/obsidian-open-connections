@@ -88,9 +88,9 @@ export function registerFileWatchers(plugin: SmartConnectionsPlugin): void {
   );
 }
 
-async function indexFolder(plugin: SmartConnectionsPlugin, folder: TFolder): Promise<void> {
+export async function indexFolder(plugin: SmartConnectionsPlugin, folder: TFolder): Promise<void> {
   const files = collectFolderSources(folder).filter((file) => isSourceFile(file, plugin));
-  plugin.notices.show('folder_index_queued', { count: files.length, folder: folder.path });
+  plugin.notices.show('folder_index_queued', { count: files.length, folder: folder.isRoot() ? plugin.app.vault.getName() : folder.path });
   // Not wrapped in a kernel job: it enqueues its own embedding run and would wait on itself.
   await processNewSourcesChunked(plugin, files);
 }

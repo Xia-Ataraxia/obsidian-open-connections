@@ -5,11 +5,13 @@ import { isExcludedPath } from '../utils';
 const DISCOVERY_CHUNK = 50;
 const SOURCE_EXTENSIONS = new Set(['md', 'txt']);
 
-/** Notes under one user-chosen folder; never called with the vault root. */
+/** Notes under one user-chosen folder; the vault root yields only its top-level notes, never a vault-wide walk. */
 export function collectFolderSources(folder: TFolder): TFile[] {
   const files: TFile[] = [];
   for (const child of folder.children) {
-    if (child instanceof TFolder) files.push(...collectFolderSources(child));
+    if (child instanceof TFolder) {
+      if (!folder.isRoot()) files.push(...collectFolderSources(child));
+    }
     else if (child instanceof TFile && SOURCE_EXTENSIONS.has(child.extension)) files.push(child);
   }
   return files;

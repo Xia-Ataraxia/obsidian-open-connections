@@ -97,6 +97,41 @@ export function registerCommands(plugin: Plugin): void {
     },
   });
 
+  // Insert connections as Smart Context at the cursor
+  plugin.addCommand({
+    id: 'insert-smart-context',
+    name: 'Insert connections as smart context',
+    editorCallback: async (editor, ctx) => {
+      const activeFile = ctx.file;
+      if (!activeFile || !p.block_collection) return;
+
+      const blockCollection = p.block_collection;
+      const hasEmbedded = blockCollection.for_source(activeFile.path).some((b: EmbeddingBlock) => b.has_embed());
+      if (!hasEmbedded) {
+        p.notices?.show('no_embedding_for_context');
+        return;
+      }
+
+      try {
+        const results = await getBlockConnections(blockCollection, activeFile.path, { limit: 20 });
+        if (!results || results.length === 0) {
+          p.notices?.show('no_connections_found');
+          return;
+        }
+
+        const lines = results.map(r => {
+          const score = Math.round((r.score ?? 0) * 100);
+          const sourcePath = ((r.item as EmbeddingBlock).source_key ?? '').replace(/\.md$/, '');
+          return `- [[${sourcePath}]] (${score}%)`;
+        });
+
+        editor.replaceSelection(`## Smart Context: ${activeFile.basename}\n\n${lines.join('\n')}\n`);
+      } catch (e: unknown) {
+        p.logger?.error('Failed to insert smart context', e);
+      }
+    },
+  });
+
   // Random connection
   plugin.addCommand({
     id: 'random-connection',

@@ -14,7 +14,7 @@ export interface ConnectionActions {
 
 /**
  * Show a context menu for a result item with standard actions:
- * open in new tab, open to the right, pin/hide.
+ * open in new tab, open to the right, insert link, pin/hide.
  */
 export function showResultContextMenu(
   plugin: { app: App },
@@ -44,6 +44,21 @@ export function showResultContextMenu(
         if (file instanceof TFile) void app.workspace.getLeaf('split').openFile(file);
       }),
   );
+
+  const target = app.workspace.activeEditor;
+  if (target?.editor && target.file) {
+    const { editor, file: targetFile } = target;
+    menu.addSeparator();
+    menu.addItem((i) =>
+      i
+        .setTitle('Insert link')
+        .setIcon('link')
+        .onClick(() => {
+          const file = app.vault.getFileByPath(fullPath);
+          if (file) editor.replaceSelection(app.fileManager.generateMarkdownLink(file, targetFile.path));
+        }),
+    );
+  }
 
   if (actions) {
     menu.addSeparator();

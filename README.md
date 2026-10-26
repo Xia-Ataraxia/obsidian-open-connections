@@ -135,7 +135,7 @@ Copy `dist/` contents to your vault's `.obsidian/plugins/open-connections/` dire
 3. Select a model from the dropdown
 4. For API providers, enter your API key
 5. Right-click a folder in the file explorer and choose **Index notes for connections** (notes you open are indexed automatically, too)
-6. Open the **Connections** view from the ribbon icon—related notes appear as you navigate
+6. Open the **Connections** view from the ribbon icon—related notes appear as you navigate. If it says **No related notes yet**, click **Index this folder** to index the notes around the open one
 
 ### Connections View
 
@@ -143,6 +143,7 @@ Copy `dist/` contents to your vault's `.obsidian/plugins/open-connections/` dire
 2. The Connections View automatically shows related notes
 3. Click any result to jump to that note
 4. Results update as you navigate between files
+5. Right-click a result for **Open in new tab**, **Open to the right**, **Insert link** (at the cursor of the note you're editing), **Pin to top**, or **Hide connection**
 
 **Tip:** Pin the Connections View in your sidebar for always-on semantic discovery as you work.
 
@@ -164,6 +165,7 @@ Access these from the Command Palette (Cmd/Ctrl + P):
 - **Open smart lookup** — Show the Lookup panel
 - **Refresh embeddings** / **Re-embed stale notes**
 - **Open random connection**
+- **Insert connections as smart context** — inserts a linked list of related notes at the cursor
 - **Clear embedding cache** — asks before deleting every embedding
 - **Start local server** / **Stop local server** — MCP server
 
