@@ -1,3 +1,5 @@
+import { ProgressBarComponent } from 'obsidian';
+
 import { invalidateConnectionsCache } from './block-connections';
 import { syncModelDownload } from './connections-model-download';
 import type { ConnectionsView } from './ConnectionsView';
@@ -20,10 +22,18 @@ function clearConnectionsBanner(view: ConnectionsView): void {
   view.container.querySelectorAll('.osc-banner').forEach((banner) => banner.remove());
 }
 
-export function addConnectionsBanner(view: ConnectionsView, message: string): void {
-  clearConnectionsBanner(view);
-  const banner = view.container.createDiv({ cls: 'osc-banner' });
-  banner.createSpan({ text: message, cls: 'osc-banner-text' });
+// Qualitative by design (b4eae52): Settings owns numeric progress; the view only shows activity.
+export function addConnectionsBanner(view: ConnectionsView, message: string, active = false, tone: 'info' | 'error' = 'info'): void {
+  let banner = view.container.querySelector<HTMLElement>('.osc-banner');
+  if (!banner || banner !== view.container.lastElementChild) {
+    clearConnectionsBanner(view);
+    banner = view.container.createDiv({ cls: 'osc-banner', attr: { role: 'status' } });
+    banner.createSpan({ cls: 'osc-banner-text' });
+    new ProgressBarComponent(banner.createDiv({ cls: 'osc-banner-bar' })).setValue(30);
+  }
+  banner.toggleClass('osc-banner--error', tone === 'error');
+  banner.toggleClass('osc-banner--active', active);
+  banner.find('.osc-banner-text').setText(message);
 }
 
 export function handleConnectionsModelSwitched(view: ConnectionsView): void {
@@ -33,7 +43,7 @@ export function handleConnectionsModelSwitched(view: ConnectionsView): void {
   invalidateConnectionsCache();
   view.resultsCache.invalidateAll();
   view.container.empty();
-  addConnectionsBanner(view, 'Embedding model changed. Re-embedding in progress.');
+  addConnectionsBanner(view, 'Embedding model changed. Re-embedding…', true);
   view.lastRenderedPath = null;
   view.lastRenderFingerprint = null;
   view.lastSearchFingerprint = null;
@@ -57,16 +67,21 @@ export function updateConnectionsProgressBanner(view: ConnectionsView): void {
     : view.plugin.status_state === 'embedding';
 
   let message: string | null = null;
+  let active = false;
+  let tone: 'info' | 'error' = 'info';
   if (view.plugin.status_state === 'error') {
     message = hasPendingWork
-      ? 'Embedding hit an error. Detailed diagnostics are in Settings; results may be stale.'
-      : 'Embedding hit an error. See Settings for detailed diagnostics.';
+      ? 'Embedding hit an error; results may be stale. See settings for details.'
+      : 'Embedding hit an error. See settings for details.';
+    tone = 'error';
   } else if (modelLoading) {
-    message = 'Preparing embeddings. Detailed progress is in Settings.';
+    message = 'Preparing embedding model…';
+    active = true;
   } else if (isRunning) {
-    message = 'Index updating. Detailed progress is in Settings; results may be stale.';
+    message = 'Updating index. Results may be stale.';
+    active = true;
   } else if (hasPendingWork) {
-    message = 'Index update pending. Detailed progress is in Settings; results may be stale.';
+    message = 'Index update pending. Results may be stale.';
   }
 
   clearEmbedProgress(view);
@@ -75,6 +90,6 @@ export function updateConnectionsProgressBanner(view: ConnectionsView): void {
     return;
   }
 
-  addConnectionsBanner(view, message);
+  addConnectionsBanner(view, message, active, tone);
   syncModelDownload(view);
 }

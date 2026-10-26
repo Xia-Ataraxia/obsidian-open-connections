@@ -38,7 +38,7 @@ export function renderConnectionsResultList(
         'aria-label': `${name} — ${scorePercent}% similarity`,
       },
     });
-    item.style.setProperty('--osc-result-delay', `${Math.min(index * 25, 500)}ms`);
+    item.setCssProps({ '--osc-result-delay': `${Math.min(index * 25, 500)}ms` });
 
     const threshold = view.plugin.settings?.smart_view_filter?.highlight_threshold ?? 0.8;
     const tier = scoreTierFor(score, threshold);

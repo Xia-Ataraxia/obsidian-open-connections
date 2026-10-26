@@ -24,6 +24,7 @@ import {
   enqueueBlocksForEmbedding,
 } from './connections-view-auto-embed';
 import {
+  type ConnectionsEmptyOptions,
   openConnectionsBlockResult,
   renderConnectionsResults,
   showConnectionsEmpty,
@@ -208,7 +209,7 @@ export class ConnectionsView extends ItemView {
   }
 
   showLoading(message = 'Loading…'): void { showConnectionsLoading(this, message); }
-  showEmpty(message = 'No similar notes found', clear = true): void { showConnectionsEmpty(this, message, clear); }
+  showEmpty(message = 'No similar notes found', options?: ConnectionsEmptyOptions): void { showConnectionsEmpty(this, message, options); }
   showError(message = 'An error occurred'): void { showConnectionsError(this, message); }
   renderResults(targetPath: string, results: ConnectionResult[]): void { renderConnectionsResults(this, targetPath, results); }
 

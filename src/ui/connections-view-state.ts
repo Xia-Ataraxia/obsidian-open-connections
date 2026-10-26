@@ -66,7 +66,7 @@ export async function deriveConnectionsViewState(
 export function applyConnectionsViewState(view: ConnectionsView, state: ViewState): void {
   switch (state.type) {
     case 'idle':
-      view.showEmpty('No active file');
+      view.showEmpty('No active note', { icon: 'file-search', hint: 'Open a note to see its connections.', action: null });
       return;
     case 'plugin_loading':
       view.showLoading('Open Connections is initializing…');
@@ -75,7 +75,7 @@ export function applyConnectionsViewState(view: ConnectionsView, state: ViewStat
       view.showError(EMBED_ERROR_MSG);
       return;
     case 'embed_loading':
-      view.showLoading('Open Connections is loading… Connections will appear when embedding is complete.');
+      view.showLoading('Loading embeddings… Connections appear when ready.');
       return;
     case 'embed_degraded':
       view.showError(state.error ? `${EMBED_DEGRADED_MSG}
@@ -83,16 +83,20 @@ export function applyConnectionsViewState(view: ConnectionsView, state: ViewStat
 Last error: ${state.error}` : EMBED_DEGRADED_MSG);
       return;
     case 'pending_import':
-      view.showLoading('Importing note… Connections will appear when embedding is complete.');
+      view.showLoading('Importing note… Connections appear when ready.');
       return;
     case 'note_too_short':
-      view.showEmpty('Note is too short to find connections.');
+      view.showEmpty('This note is too short', {
+        icon: 'file-text',
+        hint: 'Add a few more sentences, or lower the minimum length in settings.',
+        action: null,
+      });
       return;
     case 'embedding_in_progress':
-      view.showLoading('Embedding this note… Results will appear when ready.');
+      view.showLoading('Embedding this note… Connections appear when ready.');
       return;
     case 'no_connections':
-      view.showEmpty('No related notes found.');
+      view.showEmpty('No related notes yet', { hint: 'Connections appear as more of your vault is embedded.' });
       return;
     case 'results':
       view.renderResults(state.path, state.results);

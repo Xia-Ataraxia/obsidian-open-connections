@@ -4,6 +4,7 @@ import type { ConnectionResult } from '../types/entities';
 import type { ConnectionsView } from './ConnectionsView';
 import { clearEmbedProgress, updateConnectionsProgressBanner } from './connections-view-progress';
 import { renderFilterButton, renderPauseButton, renderRefreshButton } from './connections-view-result-actions';
+import { saveConnectionsSession } from './connections-view-session';
 import {
   getConnectionsResultSourcePath,
   renderConnectionsResultList,
@@ -63,7 +64,7 @@ export function renderConnectionsResults(
   });
 
   if (filtered.length === 0) {
-    showConnectionsEmpty(view, 'No similar notes found', false);
+    showFilteredEmpty(view, targetPath);
     return;
   }
 
@@ -81,26 +82,61 @@ export function renderConnectionsResults(
   updateConnectionsProgressBanner(view);
 }
 
+function showFilteredEmpty(view: ConnectionsView, targetPath: string): void {
+  if (view.folderFilter) {
+    showConnectionsEmpty(view, `No connections in ${view.folderFilter}`, {
+      clear: false,
+      icon: 'filter-x',
+      action: {
+        label: 'Show all folders',
+        run: () => {
+          view.folderFilter = '';
+          void view.renderView(targetPath);
+        },
+      },
+    });
+    return;
+  }
+  const hiddenCount = view.session.hiddenKeys.length;
+  showConnectionsEmpty(view, 'All connections are hidden', {
+    clear: false,
+    icon: 'eye-off',
+    action: {
+      label: 'Show hidden',
+      run: () => {
+        view.session.hiddenKeys = [];
+        void saveConnectionsSession(view);
+        void view.renderView(targetPath);
+        view.plugin.notices?.show?.('hidden_connections_restored', {
+          count: hiddenCount,
+          noun: hiddenCount === 1 ? 'connection' : 'connections',
+        });
+      },
+    },
+  });
+}
+
 export function showConnectionsLoading(view: ConnectionsView, message = 'Loading…'): void {
   view._lastResultKeys = [];
   clearEmbedProgress(view);
   view.container.empty();
-  const wrapper = view.container.createDiv({ cls: 'osc-state' });
+  const wrapper = view.container.createDiv({ cls: 'osc-state osc-state--loading', attr: { role: 'status' } });
+  setIcon(wrapper.createDiv({ cls: 'osc-state-icon' }), 'loader');
   wrapper.createEl('p', { text: message, cls: 'osc-state-text' });
-  if (!view.plugin.ready) return;
-  new ButtonComponent(wrapper)
-    .setButtonText('Refresh')
-    .setCta()
-    .onClick(async () => {
-      await view.plugin.reembedStaleEntities('Connections view refresh');
-      void view.renderView();
-    });
+}
+
+export interface ConnectionsEmptyOptions {
+  clear?: boolean;
+  icon?: string;
+  hint?: string;
+  // Defaults to re-embedding stale notes; null hides the button.
+  action?: { label: string; run: () => void | Promise<void> } | null;
 }
 
 export function showConnectionsEmpty(
   view: ConnectionsView,
   message = 'No similar notes found',
-  clear = true,
+  { clear = true, icon = 'search-x', hint, action }: ConnectionsEmptyOptions = {},
 ): void {
   if (clear) {
     view._lastResultKeys = [];
@@ -109,21 +145,23 @@ export function showConnectionsEmpty(
   }
 
   const wrapper = view.container.createDiv({ cls: 'osc-state' });
-  const iconEl = wrapper.createDiv({ cls: 'osc-state-icon' });
-  setIcon(iconEl, 'search-x');
+  setIcon(wrapper.createDiv({ cls: 'osc-state-icon' }), icon);
   wrapper.createEl('p', { text: message, cls: 'osc-state-text' });
-  wrapper.createEl('p', {
-    text: 'Try writing more content or adjusting minimum character settings.',
-    cls: 'osc-state-hint',
-  });
-  if (!view.plugin.ready) return;
+  if (hint) wrapper.createEl('p', { text: hint, cls: 'osc-state-hint' });
+  const resolved = action === undefined
+    ? {
+      label: 'Refresh',
+      run: async () => {
+        await view.plugin.reembedStaleEntities('Connections view refresh');
+        void view.renderView();
+      },
+    }
+    : action;
+  if (!resolved || !view.plugin.ready) return;
   new ButtonComponent(wrapper)
-    .setButtonText('Refresh')
+    .setButtonText(resolved.label)
     .setCta()
-    .onClick(async () => {
-      await view.plugin.reembedStaleEntities('Connections view refresh');
-      void view.renderView();
-    });
+    .onClick(async () => { await resolved.run(); });
 }
 
 export function showConnectionsError(view: ConnectionsView, message = 'An error occurred'): void {
