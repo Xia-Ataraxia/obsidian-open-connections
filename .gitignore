@@ -16,3 +16,9 @@ coverage/
 .openchrome/
 .claude/
 .omx/
+
+# synced from boiler-template
+*.iml
+.idea
+*.map
+data.json
