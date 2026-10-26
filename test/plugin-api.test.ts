@@ -17,7 +17,7 @@ import { createPluginApi } from '../src/ui/plugin-api';
 describe('plugin api', () => {
   it('filters by minScore and reports meta', async () => {
     const api = createPluginApi({} as never);
-    const res = await api.searchByFile({ file: 'a.md', minScore: 0.5 });
+    const res = await api.searchByFile({ file: 'z.md', minScore: 0.5 });
     expect(res.ok).toBe(true);
     expect(res.results).toEqual([{ path: 'a.md', score: 0.9, block_key: 'a.md#x' }]);
     expect(res.meta.query_type).toBe('file');
