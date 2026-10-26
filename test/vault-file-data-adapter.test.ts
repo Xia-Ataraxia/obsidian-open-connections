@@ -136,6 +136,24 @@ describe('VaultFileDataAdapter', () => {
     expect(results.map((result) => result.entity_key)).toEqual(['b.md#h1']);
   });
 
+  it('finds matches after in-memory vectors are evicted', async () => {
+    const vaultAdapter = makeVaultAdapter();
+    const collection = makeCollection();
+    collection.create_or_update(makeEntity('a.md#h1', [1, 0]).data);
+    collection.all.forEach((entity: any) => {
+      entity._queue_save = true;
+    });
+    const adapter = new VaultFileDataAdapter(collection, 'smart_blocks');
+    adapter.initVaultContext(vaultAdapter, '.obsidian', 'open-connections');
+    await adapter.save();
+    collection.all.forEach((entity: any) => {
+      entity.data.embeddings['test-model'].vec = [];
+    });
+
+    const results = await adapter.query_nearest([1, 0], { limit: 2 });
+    expect(results.map((result) => result.entity_key)).toEqual(['a.md#h1']);
+  });
+
   it('starts empty instead of throwing on a corrupt store', async () => {
     const vaultAdapter = makeVaultAdapter();
     vaultAdapter.files.set('.obsidian/plugins/open-connections/open-connections.block.json', '{broken');

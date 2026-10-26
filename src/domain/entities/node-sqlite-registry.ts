@@ -34,13 +34,15 @@ export function initNodeSqliteDatabase(
   return initNodeSqliteDatabaseAtPath(absoluteDbPath);
 }
 
-export async function initNodeSqliteDatabaseAtPath(absoluteDbPath: string): Promise<DatabaseSync> {
+export function initNodeSqliteDatabaseAtPath(absoluteDbPath: string): Promise<DatabaseSync> {
   const existing = openDatabases.get(absoluteDbPath);
   if (existing && !existing.closed) {
-    return existing.db;
+    return Promise.resolve(existing.db);
   }
 
-  const { DatabaseSync } = await import('node:sqlite');
+  // Lazy require: Chromium cannot dynamic-import() node: builtins, and a top-level import would break mobile load.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy load, see above
+  const { DatabaseSync } = require('node:sqlite') as typeof import('node:sqlite');
   const db = new DatabaseSync(absoluteDbPath);
   db.exec('PRAGMA journal_mode = WAL');
   db.exec('PRAGMA synchronous = NORMAL');
@@ -49,5 +51,5 @@ export async function initNodeSqliteDatabaseAtPath(absoluteDbPath: string): Prom
   db.exec('PRAGMA mmap_size = 67108864');
   ensureSchema(db);
   openDatabases.set(absoluteDbPath, { db, closed: false });
-  return db;
+  return Promise.resolve(db);
 }

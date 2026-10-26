@@ -115,20 +115,21 @@ export class VaultFileDataAdapter<T extends EmbeddingEntity> {
     const expectedDims = this.collection.embed_model_dims;
     const minScore = filter.min_score;
 
-    const scored = await processInChunks<EmbeddingEntity, QueryMatch>(
-      this.collection.all,
+    // Score the persisted records: the pipeline evicts in-memory vectors after save.
+    const scored = await processInChunks<[string, EntityData], QueryMatch>(
+      Array.from(this.records.entries()),
       500,
       (chunk) => {
         const chunkResults: QueryMatch[] = [];
-        for (const entity of chunk) {
-          if (!matchesFilter(entity.key, filter)) continue;
-          const candidate = entity.data.embeddings?.[modelKey]?.vec;
+        for (const [key, data] of chunk) {
+          if (!matchesFilter(key, filter)) continue;
+          const candidate = data.embeddings?.[modelKey]?.vec;
           if (!candidate || candidate.length !== queryF32.length) continue;
           if (expectedDims && candidate.length !== expectedDims) continue;
           const candidateF32 = candidate instanceof Float32Array ? candidate : new Float32Array(candidate);
           const score = cos_sim_f32(queryF32, candidateF32);
           if (minScore !== undefined && score < minScore) continue;
-          chunkResults.push({ entity_key: entity.key, score });
+          chunkResults.push({ entity_key: key, score });
         }
         return Promise.resolve(chunkResults);
       },
