@@ -3,7 +3,7 @@
  * @description Settings tab composition for Open Connections.
  */
 
-import { App, EventRef, PluginSettingTab } from 'obsidian';
+import { App, PluginSettingTab } from 'obsidian';
 import type { SettingDefinitionItem } from 'obsidian';
 
 import {
@@ -28,27 +28,22 @@ import type { SmartConnectionsPlugin } from './settings-types';
 
 export class SmartConnectionsSettingsTab extends PluginSettingTab {
   plugin: SmartConnectionsPlugin;
-  private eventRefs: EventRef[] = [];
   private statusElements = createStatusElements();
   private customModelMode: CustomModelMode = { adapter: null };
 
   constructor(app: App, plugin: SmartConnectionsPlugin) {
     super(app, plugin);
     this.plugin = plugin;
-  }
-
-  hide(): void {
-    for (const ref of this.eventRefs) {
-      this.app.workspace.offref(ref);
-    }
-    this.eventRefs = [];
-    super.hide();
+    // Obsidian caches definitions and never calls getSettingDefinitions or display()
+    // when the tab is reopened, so listeners live for the plugin and data changes call update().
+    plugin.registerEvent(app.workspace.on('open-connections:embed-progress', () => this.updateEmbeddingStatusOnly()));
+    plugin.registerEvent(app.workspace.on('open-connections:embed-state-changed', () => this.updateEmbeddingStatusOnly()));
+    plugin.registerEvent(app.workspace.on('open-connections:notices-changed', () => this.update()));
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
     if (!this.plugin.settings) return [];
     this.containerEl.addClass('open-connections-settings');
-    this.registerStatusListeners();
 
     const config = createSettingsConfigAccessor(this.app, this.plugin);
     const update = (): void => this.update();
@@ -77,7 +72,7 @@ export class SmartConnectionsSettingsTab extends PluginSettingTab {
       },
       { type: 'group', heading: 'Blocks', items: blockDefinitions() },
       { type: 'group', heading: 'View', items: viewDefinitions() },
-      { type: 'group', heading: 'Notices', items: noticeDefinitions(this.plugin, update) },
+      { type: 'group', heading: 'Notices', items: noticeDefinitions(this.plugin) },
       { type: 'group', heading: 'MCP', items: mcpDefinitions(this.plugin, update) },
       {
         type: 'group',
@@ -115,14 +110,6 @@ export class SmartConnectionsSettingsTab extends PluginSettingTab {
 
   updateEmbeddingStatusOnly(): void {
     updateEmbeddingStatusOnly(this.plugin, this.statusElements);
-  }
-
-  private registerStatusListeners(): void {
-    if (this.eventRefs.length > 0) return;
-    this.eventRefs.push(
-      this.app.workspace.on('open-connections:embed-progress', () => this.updateEmbeddingStatusOnly()),
-      this.app.workspace.on('open-connections:embed-state-changed', () => this.updateEmbeddingStatusOnly()),
-    );
   }
 
   private async confirmReembed(message: string): Promise<boolean> {
