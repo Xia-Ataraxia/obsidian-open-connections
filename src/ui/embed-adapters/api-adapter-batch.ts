@@ -1,3 +1,4 @@
+import { FatalError } from '../../domain/config';
 import type { EmbedInput, EmbedResult } from '../../types/models';
 import type { EmbedModelApiAdapter } from './api-base';
 
@@ -32,6 +33,26 @@ function build_request_batches(
   }
 
   return batches;
+}
+
+// The tokenizer is an estimate; when the API still rejects a batch as over its token limit, shrink and retry.
+const TOKEN_LIMIT_RETRIES = 3;
+const SHRINK_RATIO = 0.7;
+
+async function request_shrinking(
+  adapter: EmbedModelApiAdapter,
+  batch: Array<PreparedEntry & { prepared: string }>,
+): Promise<unknown> {
+  for (let attempt = 0; ; attempt++) {
+    const request_adapter = new adapter.req_adapter(adapter, batch.map((entry) => entry.prepared));
+    try {
+      return await adapter.request(request_adapter.to_platform());
+    } catch (error: unknown) {
+      const over_limit = error instanceof FatalError && error.status === 400 && /token/i.test(error.message);
+      if (!over_limit || attempt >= TOKEN_LIMIT_RETRIES) throw error;
+      for (const entry of batch) entry.prepared = entry.prepared.slice(0, Math.max(1, Math.floor(entry.prepared.length * SHRINK_RATIO)));
+    }
+  }
 }
 
 export async function embed_api_batch(
@@ -79,9 +100,7 @@ export async function embed_api_batch(
   const request_batches = build_request_batches(valid, budget);
 
   for (const batch of request_batches) {
-    const request_adapter = new adapter.req_adapter(adapter, batch.map((entry) => entry.prepared));
-    const request_params = request_adapter.to_platform();
-    const response = await adapter.request(request_params);
+    const response = await request_shrinking(adapter, batch);
     const response_adapter = new adapter.res_adapter(adapter, response);
     const embeddings = response_adapter.to_openai();
     if (!embeddings) continue;
