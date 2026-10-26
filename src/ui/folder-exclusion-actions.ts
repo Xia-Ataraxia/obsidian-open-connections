@@ -1,5 +1,4 @@
-import { TFile } from 'obsidian';
-
+import { collectFolderSources } from './collection-processing';
 import type { SmartConnectionsPlugin } from './settings-types';
 import { addExcludedFolderPath, removeExcludedFolderPath } from './folder-exclusion-state';
 
@@ -15,18 +14,6 @@ function isPathInsideFolder(path: string, folderPath: string): boolean {
   const normalizedFolder = normalizeFolderPath(folderPath);
   if (!normalizedFolder) return false;
   return normalizedPath === normalizedFolder || normalizedPath.startsWith(`${normalizedFolder}/`);
-}
-
-function getVaultSourcePathsInFolder(plugin: SmartConnectionsPlugin, folderPath: string): string[] {
-  const normalizedFolder = normalizeFolderPath(folderPath);
-  if (!normalizedFolder) return [];
-
-  const loadedFiles = plugin.app.vault.getAllLoadedFiles?.() ?? [];
-  return loadedFiles
-    .filter((entry): entry is TFile => entry instanceof TFile)
-    .filter((entry) => ['md', 'txt'].includes(entry.extension))
-    .map((entry) => entry.path)
-    .filter((path) => isPathInsideFolder(path, normalizedFolder));
 }
 
 function getExcludedFolders(plugin: SmartConnectionsPlugin): string[] {
@@ -58,10 +45,7 @@ export function buildFolderExclusionConfirmMessage(
   return lines.join('\n');
 }
 
-async function reconcileExcludedFoldersNow(
-  plugin: SmartConnectionsPlugin,
-  opts: { rediscover?: boolean } = {},
-): Promise<void> {
+async function reconcileExcludedFoldersNow(plugin: SmartConnectionsPlugin): Promise<void> {
   const excludedFolders = getExcludedFolders(plugin);
   const sourcePaths = (plugin.source_collection?.all ?? []).map((source) => source.key);
   const toRemove = sourcePaths.filter((path) =>
@@ -76,10 +60,6 @@ async function reconcileExcludedFoldersNow(
   await plugin.block_collection?.data_adapter?.save?.();
   plugin.source_collection?.recomputeEmbeddedCount?.();
   plugin.block_collection?.recomputeEmbeddedCount?.();
-
-  if (opts.rediscover !== false) {
-    await plugin.processNewSourcesChunked?.();
-  }
   plugin.refreshStatus?.();
   plugin.app.workspace.trigger('open-connections:discovery-complete');
 }
@@ -87,7 +67,7 @@ async function reconcileExcludedFoldersNow(
 export async function reconcileExcludedFoldersOnStartup(
   plugin: SmartConnectionsPlugin,
 ): Promise<void> {
-  await reconcileExcludedFoldersNow(plugin, { rediscover: false });
+  await reconcileExcludedFoldersNow(plugin);
 }
 
 export async function queueExcludedFolderReconcile(
@@ -117,14 +97,8 @@ export async function queueRemovedFolderReembed(
   plugin: SmartConnectionsPlugin,
   folderPath: string,
 ): Promise<void> {
-  const sourcePaths = getVaultSourcePathsInFolder(plugin, folderPath);
-  for (const path of sourcePaths) {
-    plugin.queueSourceReImport?.(path);
-  }
-
-  if (sourcePaths.length === 0) {
-    await plugin.processNewSourcesChunked?.();
-  }
+  const folder = plugin.app.vault.getFolderByPath(normalizeFolderPath(folderPath));
+  await plugin.processNewSourcesChunked?.(folder ? collectFolderSources(folder) : []);
 
   plugin.refreshStatus?.();
   plugin.app.workspace.trigger('open-connections:discovery-complete');

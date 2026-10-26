@@ -172,20 +172,14 @@ export const NOTICE_CATALOG: NoticeCatalog = {
     label: 'Nothing to re-embed',
     template: 'Everything is already embedded.',
   },
-  link_copied: {
-    label: 'Link copied',
-    template: 'Link copied.',
-    timeout: 2000,
-    immutable: true,
-  },
-  link_copy_failed: {
-    label: "Couldn't copy link",
-    template: "Couldn't copy the link.",
-    immutable: true,
-  },
   content_rules_changed: {
     label: 'Content rules changed',
     template: 'Content rules changed. Re-embedding {{count}} notes…',
+    timeout: 4000,
+  },
+  folder_index_queued: {
+    label: 'Folder indexing',
+    template: 'Indexing {{count}} notes in {{folder}}…',
     timeout: 4000,
   },
   folder_exclusion_reconcile_deferred: {
@@ -212,11 +206,6 @@ export const NOTICE_CATALOG: NoticeCatalog = {
   failed_reinitialize_model: {
     label: 'Model re-initialization failed',
     template: 'Failed to re-initialize the embedding model. Retry or pick another model.',
-  },
-  context_copied: {
-    label: 'Connections copied',
-    template: 'Copied {{count}} connections to the clipboard.',
-    timeout: 3000,
   },
   no_embedding_for_context: {
     label: 'Note not embedded yet',

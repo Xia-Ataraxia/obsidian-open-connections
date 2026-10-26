@@ -1,5 +1,3 @@
-import { TFolder, type App } from 'obsidian';
-
 function normalizeFolderPath(value: string): string {
   return value
     .replace(/\\/g, '/')
@@ -37,17 +35,4 @@ export function removeExcludedFolderPath(raw: string, folderPath: string): strin
   return serializeExcludedFolderPaths(
     parseExcludedFolderPaths(raw).filter((entry) => entry !== normalized),
   );
-}
-
-export function listVaultFolderPaths(app: App): string[] {
-  const files = app.vault.getAllLoadedFiles?.() ?? [];
-  const configDir = normalizeFolderPath(app.vault.configDir ?? '');
-  const folders = files
-    .filter((entry): entry is TFolder => entry instanceof TFolder)
-    .map((folder) => normalizeFolderPath(folder.path))
-    .filter((path) => path.length > 0)
-    .filter((path) => !configDir || !path.startsWith(configDir))
-    .sort((left, right) => left.localeCompare(right));
-
-  return Array.from(new Set(folders));
 }

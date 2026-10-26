@@ -1,15 +1,27 @@
+import { TFile, TFolder } from 'obsidian';
 import type SmartConnectionsPlugin from '../main';
 import { isExcludedPath } from '../utils';
 
 const DISCOVERY_CHUNK = 50;
+const SOURCE_EXTENSIONS = new Set(['md', 'txt']);
 
-export async function processNewSourcesChunked(plugin: SmartConnectionsPlugin): Promise<void> {
+/** Notes under one user-chosen folder; never called with the vault root. */
+export function collectFolderSources(folder: TFolder): TFile[] {
+  const files: TFile[] = [];
+  for (const child of folder.children) {
+    if (child instanceof TFolder) files.push(...collectFolderSources(child));
+    else if (child instanceof TFile && SOURCE_EXTENSIONS.has(child.extension)) files.push(child);
+  }
+  return files;
+}
+
+export async function processNewSourcesChunked(plugin: SmartConnectionsPlugin, candidates: TFile[]): Promise<void> {
   if (!plugin.source_collection?.vault || !plugin.block_collection) return;
 
   const knownPaths = new Set(plugin.source_collection.all.map((source) => source.key));
   const folderExclusions = String(plugin.settings?.smart_sources?.folder_exclusions ?? '');
   const fileExclusions = String(plugin.settings?.smart_sources?.file_exclusions ?? '');
-  const newFiles = plugin.app.vault.getMarkdownFiles().filter(
+  const newFiles = candidates.filter(
     (file) => !knownPaths.has(file.path) && !isExcludedPath(file.path, folderExclusions, fileExclusions),
   );
 
@@ -18,9 +30,8 @@ export async function processNewSourcesChunked(plugin: SmartConnectionsPlugin): 
   const total = newFiles.length;
   plugin.logger.debug(`[SC] Discovering ${total} new files (chunk=${DISCOVERY_CHUNK})`);
 
-  // Suppress file-watcher re-imports, view renders, and block parsing during initial discovery
+  // Suppress file-watcher re-imports while importing; candidate sets are folder-sized, so blocks parse inline.
   (plugin as unknown as { _discovering?: boolean })._discovering = true;
-  plugin.source_collection._initializing = true;
 
   for (let index = 0; index < total; index += DISCOVERY_CHUNK) {
     if (plugin._unloading) return;
@@ -43,8 +54,6 @@ export async function processNewSourcesChunked(plugin: SmartConnectionsPlugin): 
     await new Promise((resolve) => window.setTimeout(resolve, 0));
   }
 
-  // Re-enable everything — source discovery is done
-  plugin.source_collection._initializing = false;
   (plugin as unknown as { _discovering?: boolean })._discovering = false;
 
   // Recompute counts after source discovery

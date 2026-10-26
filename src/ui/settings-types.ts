@@ -1,4 +1,4 @@
-import type { App, EventRef, Plugin } from 'obsidian';
+import type { App, EventRef, Plugin, TFile } from 'obsidian';
 
 import type { EmbeddingKernelJob } from '../domain/embedding-kernel-types';
 import type { ParsedEmbedRuntimeState } from '../types/embed-runtime';
@@ -34,7 +34,7 @@ export interface SmartConnectionsPlugin extends Plugin {
   } | null;
   switchEmbeddingModel?: (reason?: string) => Promise<void>;
   reembedStaleEntities?: (reason?: string) => Promise<number>;
-  processNewSourcesChunked?: () => Promise<void>;
+  processNewSourcesChunked?: (files: TFile[]) => Promise<void>;
   queueSourceReImport?: (path: string) => void;
   removeSource?: (path: string) => void;
   applyExcludedFolder?: (folderPath: string) => Promise<void>;

@@ -97,43 +97,6 @@ export function registerCommands(plugin: Plugin): void {
     },
   });
 
-  // Copy connections as Smart Context
-  plugin.addCommand({
-    id: 'copy-smart-context',
-    name: 'Copy connections as smart context',
-    callback: async () => {
-      const activeFile = plugin.app.workspace.getActiveFile();
-      if (!activeFile || !p.block_collection) return;
-
-      const blockCollection = p.block_collection;
-      const hasEmbedded = blockCollection.for_source(activeFile.path).some((b: EmbeddingBlock) => b.has_embed());
-      if (!hasEmbedded) {
-        p.notices?.show('no_embedding_for_context');
-        return;
-      }
-
-      try {
-        const results = await getBlockConnections(blockCollection, activeFile.path, { limit: 20 });
-        if (!results || results.length === 0) {
-          p.notices?.show('no_connections_found');
-          return;
-        }
-
-        const lines = results.map(r => {
-          const score = Math.round((r.score ?? 0) * 100);
-          const sourcePath = ((r.item as EmbeddingBlock).source_key ?? '').replace(/\.md$/, '');
-          return `- [[${sourcePath}]] (${score}%)`;
-        });
-
-        const contextText = `## Smart Context: ${activeFile.basename}\n\n${lines.join('\n')}`;
-        await navigator.clipboard.writeText(contextText);
-        p.notices?.show('context_copied', { count: results.length });
-      } catch (e: unknown) {
-        p.logger?.error('Failed to copy smart context', e);
-      }
-    },
-  });
-
   // Random connection
   plugin.addCommand({
     id: 'random-connection',

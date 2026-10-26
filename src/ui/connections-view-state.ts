@@ -96,7 +96,7 @@ Last error: ${state.error}` : EMBED_DEGRADED_MSG);
       view.showLoading('Embedding this note… Connections appear when ready.');
       return;
     case 'no_connections':
-      view.showEmpty('No related notes yet', { hint: 'Connections appear as more of your vault is embedded.' });
+      view.showEmpty('No related notes yet', { hint: 'Right-click a folder and choose Index notes for connections to add more.' });
       return;
     case 'results':
       view.renderResults(state.path, state.results);
