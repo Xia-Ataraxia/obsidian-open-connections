@@ -89,6 +89,7 @@ import {
   setupStatusBar as _setupStatusBar,
 } from './ui/status-bar';
 import { OpenConnectionsMcpServer } from './ui/mcp-server';
+import { createPluginApi, type OpenConnectionsApi } from './ui/plugin-api';
 
 export default class SmartConnectionsPlugin extends Plugin {
   settings: PluginSettings;
@@ -120,6 +121,7 @@ export default class SmartConnectionsPlugin extends Plugin {
   _embed_state: EmbedStateSnapshot = { phase: 'idle', modelFingerprint: null, lastError: null };
   _embed_profiling: EmbedProfilingState = createEmbedProfilingState();
   _notices?: SmartConnectionsNotices;
+  _api?: OpenConnectionsApi;
 
   get notices(): SmartConnectionsNotices {
     if (!this._notices) {
@@ -136,6 +138,10 @@ export default class SmartConnectionsPlugin extends Plugin {
     return this._notices;
   }
 
+  get api(): OpenConnectionsApi {
+    this._api ??= createPluginApi(this);
+    return this._api;
+  }
   get embed_ready(): boolean { return isEmbedModelReady(this.getEmbedRuntimeState()); }
   get connectionsReader(): ConnectionsReader {
     if (!this._connectionsReader) this._connectionsReader = createConnectionsReader(this);

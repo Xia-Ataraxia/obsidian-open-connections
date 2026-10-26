@@ -36,14 +36,6 @@ function clearElement(element: HTMLElement): void {
   }
 }
 
-export function handleLookupModelSwitched(view: LookupViewRenderContext): void {
-  showLookupEmpty(
-    view,
-    'Embedding model changed. Results will refresh after active-model embeddings are ready.',
-    true,
-  );
-}
-
 export function renderLookupResults(
   view: LookupViewRenderContext,
   query: string,
