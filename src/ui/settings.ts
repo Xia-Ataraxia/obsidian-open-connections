@@ -15,6 +15,7 @@ import {
 import { createSettingsConfigAccessor } from './settings-config-accessor';
 import { confirmWithModal } from './settings-confirm-modal';
 import { embeddingModelDefinitions } from './settings-embedding-model-section';
+import { contentRulesDefinition } from './settings-content-rules-section';
 import { folderExclusionDefinitions } from './settings-folder-exclusions-section';
 import { mcpDefinitions } from './settings-mcp-section';
 import type { CustomModelMode } from './settings-model-picker-shared';
@@ -68,6 +69,7 @@ export class SmartConnectionsSettingsTab extends PluginSettingTab {
           ...sourceDefinitions(),
           ...folderExclusionDefinitions(this.app, this.plugin, config, update),
           excludedHeadingsDefinition(),
+          contentRulesDefinition(this.plugin, config, update),
         ],
       },
       { type: 'group', heading: 'Blocks', items: blockDefinitions() },

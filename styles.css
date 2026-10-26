@@ -1052,3 +1052,27 @@ div.workspace-leaf-content[data-type="open-connections-view"] > .view-content {
     transition-duration: 0.25s;
   }
 }
+
+/* ─── Settings: content rules ─── */
+.osc-rules-setting {
+  flex-wrap: wrap;
+}
+
+.osc-rules-setting .setting-item-control {
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+}
+
+.osc-rules-input {
+  width: 100%;
+  white-space: pre;
+  overflow-x: auto;
+  font-family: var(--font-monospace);
+  font-size: var(--font-smaller);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.osc-rules-input.osc-rules-invalid {
+  border-color: var(--osc-color-warning);
+  box-shadow: 0 0 0 2px var(--osc-color-warning-bg);
+}
